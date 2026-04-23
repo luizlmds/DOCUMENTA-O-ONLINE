@@ -369,7 +369,6 @@ create policy if not exists "allow_all_docs" on documentos for all using (true);
   <div id="view-lista" class="page">
     <div class="tabs">
       <button class="tab active" onclick="mudarTab('lista')">👥 Colaboradores</button>
-      <button class="tab" onclick="mudarTab('cadastro')">➕ Novo Cadastro</button>
     </div>
 
     <!-- LISTA -->
@@ -381,6 +380,7 @@ create policy if not exists "allow_all_docs" on documentos for all using (true);
           <select id="filtro-cc" style="width:140px;" onchange="filtrarLista()"><option value="">Todos os CCs</option></select>
           <select id="filtro-funcao" style="width:150px;" onchange="filtrarLista()"><option value="">Todas as funções</option></select>
           <button class="btn btn-outline btn-sm" onclick="limparFiltros()">✕ Limpar</button>
+          <button class="btn btn-outline btn-sm" onclick="carregarColaboradores()" title="Atualizar lista">🔄</button>
           <button class="btn btn-primary" onclick="mudarTab('cadastro')">+ Novo</button>
         </div>
       </div>
@@ -420,7 +420,10 @@ create policy if not exists "allow_all_docs" on documentos for all using (true);
 
   <!-- DETAIL VIEW -->
   <div id="view-detail" class="page" style="display:none;">
-    <button class="back-link" onclick="voltarLista()">← Voltar à lista</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+      <button class="back-link" onclick="voltarLista()" style="margin-bottom:0;">← Voltar à lista</button>
+      <button class="btn btn-outline btn-sm" onclick="recarregarDetalhe()" title="Atualizar documentos">🔄 Atualizar</button>
+    </div>
     <div class="detail-header">
       <div class="detail-avatar" id="dv-avatar"></div>
       <div>
@@ -721,7 +724,7 @@ function calcPct(colabId) {
 function mudarTab(t) {
   document.getElementById('tab-content-lista').style.display = t==='lista' ? '' : 'none';
   document.getElementById('tab-content-cadastro').style.display = t==='cadastro' ? '' : 'none';
-  document.querySelectorAll('.tab').forEach((el,i) => el.classList.toggle('active', (i===0&&t==='lista')||(i===1&&t==='cadastro')));
+  document.querySelectorAll('.tab').forEach((el,i) => el.classList.toggle('active', i===0));
   if (t==='lista') { editingId=null; limparForm(); document.getElementById('form-titulo').textContent='Pré-Cadastro de Colaborador'; }
 }
 function limparForm() {
@@ -829,6 +832,14 @@ async function abrirDetalhe(id) {
   document.getElementById('view-detail').style.display = '';
   renderDetalhe();
 }
+async function recarregarDetalhe() {
+  if(!currentColab) return;
+  showLoading('Atualizando documentos...');
+  const { data } = await sb.from('documentos').select('*').eq('colaborador_id', currentColab.id);
+  docsMap[currentColab.id] = data || [];
+  hideLoading();
+  renderDetalhe();
+}
 function voltarLista() {
   document.getElementById('view-detail').style.display = 'none';
   document.getElementById('view-lista').style.display = '';
@@ -862,7 +873,10 @@ function renderDocRows(containerId, docList, docs, isRecruiter) {
     const st = getDocState(docs, doc.id);
     const dotClass = st.na?'dot-gray':st.status==='ok'?'dot-green':st.status==='fail'?'dot-red':st.status==='analysis'?'dot-amber':'dot-gray';
     const _arqs = getArquivos(st);
-    const fileHtml = _arqs.length ? _arqs.map(a=>`<div class="doc-file">📄 <a href="${a.url}" target="_blank" style="color:var(--green-text);font-size:11px;">${a.nome}</a></div>`).join('') : (isRecruiter&&!st.na?'<div style="font-size:11px;color:var(--text-muted);">Nenhum arquivo enviado</div>':'');
+    const fileHtml = _arqs.length ? _arqs.map((a,_i)=>`<div class="doc-file" style="display:flex;align-items:center;gap:5px;">
+      <span>📄</span><a href="${a.url}" target="_blank" style="color:var(--green-text);font-size:11px;flex:1;">${a.nome}</a>
+      ${isRecruiter?`<button onclick="removerArquivoRecrutador('${st.id||''}','${doc.id}',${_i})" style="border:none;background:none;color:#e24b4a;cursor:pointer;font-size:13px;" title="Remover arquivo">✕</button>`:''}
+    </div>`).join('') : (isRecruiter&&!st.na?'<div style="font-size:11px;color:var(--text-muted);">Nenhum arquivo enviado</div>':'');
     let controls = '';
     if(isRecruiter) {
       const naActive = st.na?'active':'';
@@ -915,6 +929,25 @@ async function toggleNA(docId) {
   } else {
     await sb.from('documentos').insert({colaborador_id:currentColab.id, doc_id:docId, na:novoNA, status:'none'});
   }
+  await recarregarDocs();
+  hideLoading();
+  renderDetalhe();
+}
+
+async function removerArquivoRecrutador(docRowId, docId, idx) {
+  if(!currentColab) return;
+  if(!confirm('Remover este arquivo?')) return;
+  const colabId = currentColab.id;
+  const docs = docsMap[colabId]||[];
+  const existing = docs.find(x=>x.doc_id===docId);
+  if(!existing) return;
+  const arquivos = getArquivos(existing);
+  arquivos.splice(idx,1);
+  const newUrl = arquivos.length ? JSON.stringify(arquivos) : null;
+  const newNome = arquivos.length ? arquivos[0].nome : null;
+  const newStatus = arquivos.length ? existing.status : 'none';
+  showLoading('Removendo arquivo...');
+  await sb.from('documentos').update({arquivo_url:newUrl, arquivo_nome:newNome, status:newStatus}).eq('id', existing.id);
   await recarregarDocs();
   hideLoading();
   renderDetalhe();
