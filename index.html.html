@@ -339,11 +339,16 @@ create policy if not exists "allow_all_docs" on documentos for all using (true);
   </div>
   <div class="collab-content">
     <div class="alert alert-info" style="margin-bottom:16px;">
-      Envie os documentos listados abaixo. Utilize o botão 📎 para selecionar um PDF ou foto da galeria, ou o botão 📷 para tirar uma foto com a câmera. Após o envio, o setor de RH irá analisar cada documento.
+      Envie os documentos listados abaixo. Utilize o botão 📎 para selecionar até 6 arquivos (PDF ou foto) por documento, ou o botão 📷 para tirar uma foto com a câmera. Após o envio, o RH irá analisar cada documento.
     </div>
     <div id="cv-docs"></div>
     <div id="cv-deps"></div>
-    <div style="margin-top:20px;padding:12px;background:var(--gray-bg);border-radius:8px;font-size:11px;color:var(--text-muted);line-height:1.7;">
+    <div style="margin-top:20px;display:flex;justify-content:center;">
+      <button class="btn btn-primary" onclick="baixarDossie()" style="gap:8px;padding:12px 24px;font-size:14px;">
+        📥 Baixar Dossiê em PDF
+      </button>
+    </div>
+    <div style="margin-top:14px;padding:12px;background:var(--gray-bg);border-radius:8px;font-size:11px;color:var(--text-muted);line-height:1.7;">
       Ao enviar este formulário, você concorda com o tratamento de seus dados pessoais em conformidade com a <strong>Lei Geral de Proteção de Dados (LGPD)</strong>, exclusivamente para fins relacionados a este atendimento.
     </div>
   </div>
@@ -374,10 +379,13 @@ create policy if not exists "allow_all_docs" on documentos for all using (true);
 
     <!-- LISTA -->
     <div id="tab-content-lista">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;">
         <div id="lista-count" style="font-size:13px;color:var(--text-muted);"></div>
-        <div style="display:flex;gap:8px;">
-          <input type="text" id="search-input" placeholder="Buscar colaborador..." style="width:220px;" oninput="filtrarLista()">
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+          <input type="text" id="search-input" placeholder="Buscar nome ou CPF..." style="width:180px;" oninput="filtrarLista()">
+          <select id="filtro-cc" style="width:140px;" onchange="filtrarLista()"><option value="">Todos os CCs</option></select>
+          <select id="filtro-funcao" style="width:150px;" onchange="filtrarLista()"><option value="">Todas as funções</option></select>
+          <button class="btn btn-outline btn-sm" onclick="limparFiltros()">✕ Limpar</button>
           <button class="btn btn-primary" onclick="mudarTab('cadastro')">+ Novo</button>
         </div>
       </div>
@@ -642,11 +650,37 @@ async function carregarColaboradores() {
 // RENDER LISTA
 // =============================================
 function getInitials(n) { return (n||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
-function filtrarLista() { renderLista(document.getElementById('search-input').value.toLowerCase()); }
+function limparFiltros() {
+  document.getElementById('search-input').value='';
+  document.getElementById('filtro-cc').value='';
+  document.getElementById('filtro-funcao').value='';
+  renderLista();
+}
+function filtrarLista() {
+  renderLista(
+    document.getElementById('search-input').value.toLowerCase(),
+    document.getElementById('filtro-cc').value,
+    document.getElementById('filtro-funcao').value
+  );
+}
 
-function renderLista(filtro='') {
+function popularFiltros() {
+  const ccSel = document.getElementById('filtro-cc');
+  const fnSel = document.getElementById('filtro-funcao');
+  if(!ccSel||!fnSel) return;
+  const ccs = [...new Set(colaboradores.map(c=>c.centro_custo).filter(Boolean))].sort();
+  const fns = [...new Set(colaboradores.map(c=>c.funcao).filter(Boolean))].sort();
+  const ccVal = ccSel.value; const fnVal = fnSel.value;
+  ccSel.innerHTML = '<option value="">Todos os CCs</option>' + ccs.map(v=>`<option value="${v}"${v===ccVal?' selected':''}>${v}</option>`).join('');
+  fnSel.innerHTML = '<option value="">Todas as funções</option>' + fns.map(v=>`<option value="${v}"${v===fnVal?' selected':''}>${v}</option>`).join('');
+}
+function renderLista(filtro='', filtroCC='', filtroFuncao='') {
+  popularFiltros();
   const el = document.getElementById('lista-colaboradores');
-  const lista = filtro ? colaboradores.filter(c => c.nome.toLowerCase().includes(filtro) || c.funcao.toLowerCase().includes(filtro)) : colaboradores;
+  let lista = colaboradores;
+  if(filtro) lista = lista.filter(c => c.nome.toLowerCase().includes(filtro) || c.cpf.includes(filtro));
+  if(filtroCC) lista = lista.filter(c => c.centro_custo === filtroCC);
+  if(filtroFuncao) lista = lista.filter(c => c.funcao === filtroFuncao);
   document.getElementById('lista-count').textContent = lista.length + ' colaborador' + (lista.length !== 1 ? 'es' : '') + ' cadastrado' + (lista.length !== 1 ? 's' : '');
   if (!lista.length) {
     el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><h3>Nenhum colaborador encontrado</h3><p>Cadastre um novo colaborador clicando em "+ Novo".</p></div>`;
@@ -831,7 +865,8 @@ function renderDocRows(containerId, docList, docs, isRecruiter) {
     num++;
     const st = getDocState(docs, doc.id);
     const dotClass = st.na?'dot-gray':st.status==='ok'?'dot-green':st.status==='fail'?'dot-red':st.status==='analysis'?'dot-amber':'dot-gray';
-    const fileHtml = st.arquivo_url ? `<div class="doc-file">📄 <a href="${st.arquivo_url}" target="_blank" style="color:var(--green-text);">${st.arquivo_nome||'Ver arquivo'}</a></div>` : (isRecruiter&&!st.na?'<div style="font-size:11px;color:var(--text-muted);">Nenhum arquivo enviado</div>':'');
+    const _arqs = getArquivos(st);
+    const fileHtml = _arqs.length ? _arqs.map(a=>`<div class="doc-file">📄 <a href="${a.url}" target="_blank" style="color:var(--green-text);font-size:11px;">${a.nome}</a></div>`).join('') : (isRecruiter&&!st.na?'<div style="font-size:11px;color:var(--text-muted);">Nenhum arquivo enviado</div>':'');
     let controls = '';
     if(isRecruiter) {
       const naActive = st.na?'active':'';
@@ -920,30 +955,63 @@ async function carregarVisaoColaborador(colabId) {
   renderDocRowsCollab('cv-deps', DOCS.filter(d=>d.dep), docs||[], colabId);
 }
 
+function getArquivos(st) {
+  if(!st||!st.arquivo_url) return [];
+  try { const p=JSON.parse(st.arquivo_url); return Array.isArray(p)?p:[{url:st.arquivo_url,nome:st.arquivo_nome||'arquivo'}]; }
+  catch(e) { return [{url:st.arquivo_url,nome:st.arquivo_nome||'arquivo'}]; }
+}
+
 function renderDocRowsCollab(containerId, docList, docs, colabId) {
   const el = document.getElementById(containerId);
   let num = 0;
+  const MAX = 6;
   const html = docList.map(doc => {
     num++;
     const st = getDocState(docs, doc.id);
     if(st.na) return `<div class="doc-row na-row"><div class="doc-num">${num}</div><div class="doc-body"><div class="doc-name">${doc.n}</div><div style="font-size:11px;color:var(--text-muted);">Não aplicável ao seu cadastro</div></div></div>`;
     const dotClass = st.status==='ok'?'dot-green':st.status==='fail'?'dot-red':st.status==='analysis'?'dot-amber':'dot-gray';
-    const fileHtml = st.arquivo_url ? `<div class="doc-file">✅ <a href="${st.arquivo_url}" target="_blank">${st.arquivo_nome||'arquivo enviado'}</a></div>` : '';
+    const arquivos = getArquivos(st);
+    const podeAnexar = arquivos.length < MAX;
+    const filesHtml = arquivos.map((a,i)=>`<div class="doc-file" style="display:flex;align-items:center;gap:5px;margin-top:3px;">
+      <span style="font-size:12px;">📄</span>
+      <a href="${a.url}" target="_blank" style="color:var(--green-text);font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.nome}</a>
+      <button onclick="removerArquivoCollab('${colabId}','${doc.id}',${i})" style="border:none;background:none;color:#e24b4a;cursor:pointer;font-size:13px;flex-shrink:0;" title="Remover">✕</button>
+    </div>`).join('');
+    const countLabel = arquivos.length>0?`<div style="font-size:10px;color:var(--text-muted);margin-top:3px;">${arquivos.length}/${MAX} arquivo(s)</div>`:'';
     return `<div class="doc-row" id="crow-${doc.id}">
       <div class="doc-num">${num}</div>
       <div class="doc-body">
         <div class="doc-name">${doc.n}</div>
-        ${fileHtml}
-        ${st.status==='fail'?'<div style="font-size:11px;color:var(--red-text);margin-top:3px;">⚠ Documento reprovado — envie novamente.</div>':''}
+        ${filesHtml}${countLabel}
+        ${st.status==='fail'?'<div style="font-size:11px;color:var(--red-text);margin-top:3px;">⚠ Reprovado — envie novamente.</div>':''}
       </div>
       <div class="doc-controls">
         <div class="dot ${dotClass}"></div>
-        <label class="upload-btn" title="Selecionar PDF ou foto da galeria">📎<input type="file" accept="image/*,application/pdf" onchange="uploadDocCollab('${colabId}','${doc.id}',this)"></label>
-        <button class="upload-btn" title="Tirar foto com câmera" onclick="abrirCameraCollab('${colabId}','${doc.id}')">📷</button>
+        ${podeAnexar?`<label class="upload-btn" title="Selecionar PDF ou foto">📎<input type="file" accept="image/*,application/pdf" onchange="uploadDocCollab('${colabId}','${doc.id}',this)"></label>
+        <button class="upload-btn" title="Câmera" onclick="abrirCameraCollab('${colabId}','${doc.id}')">📷</button>`
+        :`<span style="font-size:10px;color:var(--text-muted);text-align:center;">Máx<br>${MAX}</span>`}
       </div>
     </div>`;
   }).join('');
   el.innerHTML += html;
+}
+
+async function removerArquivoCollab(colabId, docId, idx) {
+  if(!confirm('Remover este arquivo?')) return;
+  const docs = docsMap[colabId]||[];
+  const existing = docs.find(x=>x.doc_id===docId);
+  if(!existing) return;
+  const arquivos = getArquivos(existing);
+  arquivos.splice(idx,1);
+  const newUrl = arquivos.length ? JSON.stringify(arquivos) : null;
+  const newNome = arquivos.length ? arquivos[0].nome : null;
+  const newStatus = arquivos.length ? 'analysis' : 'none';
+  showLoading('Removendo...');
+  await sb.from('documentos').update({arquivo_url:newUrl,arquivo_nome:newNome,status:newStatus}).eq('id',existing.id);
+  const {data} = await sb.from('documentos').select('*').eq('colaborador_id',colabId);
+  docsMap[colabId]=data||[];
+  hideLoading();
+  await carregarVisaoColaborador(colabId);
 }
 
 async function uploadDocCollab(colabId, docId, input) {
@@ -967,15 +1035,22 @@ async function uploadArquivo(colabId, docId, file) {
   showLoading('Enviando arquivo...');
   const ext = file.name.split('.').pop();
   const path = `${colabId}/${docId}-${Date.now()}.${ext}`;
-  const { data: upData, error: upErr } = await sb.storage.from('documentos').upload(path, file, {upsert:true});
+  const { error: upErr } = await sb.storage.from('documentos').upload(path, file, {upsert:true});
   if(upErr) { hideLoading(); alert('Erro no upload: '+upErr.message); return; }
   const { data: { publicUrl } } = sb.storage.from('documentos').getPublicUrl(path);
+  const novoArq = {url:publicUrl, nome:file.name};
   const existing = (docsMap[colabId]||[]).find(x=>x.doc_id===docId);
   if(existing) {
-    await sb.from('documentos').update({status:'analysis', arquivo_url:publicUrl, arquivo_nome:file.name, na:false}).eq('id',existing.id);
+    const arquivosAtuais = getArquivos(existing);
+    const MAX = 6;
+    if(arquivosAtuais.length >= MAX) { hideLoading(); alert(`Máximo de ${MAX} arquivos por documento atingido.`); return; }
+    arquivosAtuais.push(novoArq);
+    await sb.from('documentos').update({status:'analysis',arquivo_url:JSON.stringify(arquivosAtuais),arquivo_nome:arquivosAtuais[0].nome,na:false}).eq('id',existing.id);
   } else {
-    await sb.from('documentos').insert({colaborador_id:colabId, doc_id:docId, status:'analysis', arquivo_url:publicUrl, arquivo_nome:file.name, na:false});
+    await sb.from('documentos').insert({colaborador_id:colabId,doc_id:docId,status:'analysis',arquivo_url:JSON.stringify([novoArq]),arquivo_nome:file.name,na:false});
   }
+  const {data} = await sb.from('documentos').select('*').eq('colaborador_id',colabId);
+  docsMap[colabId]=data||[];
   hideLoading();
 }
 
@@ -1017,6 +1092,60 @@ function fecharModalSe(e) { if(e.target===e.currentTarget) fecharModal(); }
 // =============================================
 function showLoading(msg='Carregando...') { document.getElementById('loading-overlay').style.display='flex'; document.getElementById('loading-msg').textContent=msg; }
 function hideLoading() { document.getElementById('loading-overlay').style.display='none'; }
+
+// =============================================
+// BAIXAR DOSSIE
+// =============================================
+async function baixarDossie() {
+  const colabId = currentCollabUrlId;
+  if(!colabId) return;
+  const docs = docsMap[colabId]||[];
+  const todosArquivos = [];
+  for(const doc of DOCS) {
+    const st = getDocState(docs, doc.id);
+    if(st.na) continue;
+    const arquivos = getArquivos(st);
+    for(const a of arquivos) {
+      todosArquivos.push({nome:doc.n, arquivo:a});
+    }
+  }
+  if(todosArquivos.length===0) { alert('Nenhum documento foi enviado ainda.'); return; }
+  showLoading('Gerando dossiê...');
+  try {
+    // Build HTML for PDF print
+    const nomeColab = document.getElementById('cv-nome').textContent;
+    const metaColab = document.getElementById('cv-meta').textContent;
+    let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Dossiê - ${nomeColab}</title>
+    <style>body{font-family:Arial,sans-serif;margin:20px;}h1{color:#1a3a2a;font-size:18px;}h2{color:#1a3a2a;font-size:14px;margin-top:24px;border-bottom:1px solid #ccc;padding-bottom:4px;}
+    .meta{color:#666;font-size:12px;margin-bottom:20px;}.item{margin:16px 0;page-break-inside:avoid;}
+    img{max-width:100%;max-height:600px;border:1px solid #ddd;border-radius:4px;}
+    .doc-label{font-size:12px;color:#444;margin-bottom:6px;font-weight:bold;}
+    .pdf-link{font-size:12px;color:#0f6e56;}</style></head><body>
+    <h1>Dossiê de Documentação — ${nomeColab}</h1>
+    <div class="meta">${metaColab} · Gerado em ${new Date().toLocaleDateString('pt-BR')}</div>`;
+    for(const item of todosArquivos) {
+      const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(item.arquivo.nome);
+      html += `<div class="item"><div class="doc-label">${item.nome}</div>`;
+      if(isImg) {
+        try {
+          const resp = await fetch(item.arquivo.url);
+          const blob = await resp.blob();
+          const b64 = await new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(blob); });
+          html += `<img src="${b64}" alt="${item.nome}">`;
+        } catch(e) { html += `<a class="pdf-link" href="${item.arquivo.url}">${item.arquivo.nome}</a>`; }
+      } else {
+        html += `<a class="pdf-link" href="${item.arquivo.url}" target="_blank">📄 ${item.arquivo.nome} (clique para abrir)</a>`;
+      }
+      html += `</div>`;
+    }
+    html += `</body></html>`;
+    const win = window.open('','_blank');
+    win.document.write(html);
+    win.document.close();
+    win.onload = () => { win.print(); };
+  } catch(e) { alert('Erro ao gerar dossiê: '+e.message); }
+  hideLoading();
+}
 
 // =============================================
 // START
