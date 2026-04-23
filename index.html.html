@@ -502,9 +502,12 @@ let currentCollabUrlId = null;
 // =============================================
 // INIT
 // =============================================
+const SB_URL_DEFAULT = 'https://ycdgcfucjyehjhczjkyw.supabase.co';
+const SB_KEY_DEFAULT = 'LXVQDCgOwTIB6JKQvMZ6Gw2yWqN3k6TA2uydk0/4v14rsazrjot0/Lh0STH7pY4U+Qtbs3WscGgSOIxmhiET9Q==';
+
 async function init() {
-  const url = localStorage.getItem('sb_url');
-  const key = localStorage.getItem('sb_key');
+  const url = localStorage.getItem('sb_url') || SB_URL_DEFAULT;
+  const key = localStorage.getItem('sb_key') || SB_KEY_DEFAULT;
 
   // Detectar se é link de colaborador
   const hash = window.location.hash;
@@ -512,6 +515,9 @@ async function init() {
     currentCollabUrlId = hash.replace('#colab/','');
     isCollabView = true;
   }
+
+  const initUrl = url.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
+  sb = supabase.createClient(initUrl, key, {auth:{persistSession:true,autoRefreshToken:true}});
 
   if (!url || !key) {
     if (isCollabView) {
@@ -521,9 +527,6 @@ async function init() {
     showSetup();
     return;
   }
-
-  const initUrl = url.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
-  sb = supabase.createClient(initUrl, key, {auth:{persistSession:true,autoRefreshToken:true}});
 
   if (isCollabView) {
     await carregarVisaoColaborador(currentCollabUrlId);
@@ -885,9 +888,8 @@ async function recarregarDocs() {
 // VISÃO DO COLABORADOR
 // =============================================
 async function carregarVisaoColaborador(colabId) {
-  const url = localStorage.getItem('sb_url');
-  const key = localStorage.getItem('sb_key');
-  if(!url||!key) { alert('Configuração ausente. Contate o RH.'); return; }
+  const url = localStorage.getItem('sb_url') || SB_URL_DEFAULT;
+  const key = localStorage.getItem('sb_key') || SB_KEY_DEFAULT;
   const cleanUrl2 = url.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
   sb = supabase.createClient(cleanUrl2, key, {auth:{persistSession:true,autoRefreshToken:true}});
   showLoading('Carregando checklist...');
