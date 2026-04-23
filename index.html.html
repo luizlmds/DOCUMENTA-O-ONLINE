@@ -1148,18 +1148,23 @@ function hideLoading() { document.getElementById('loading-overlay').style.displa
 // =============================================
 // BAIXAR DOSSIE
 // =============================================
-async function carregarScript(src) {
-  if(document.querySelector(`script[src="${src}"]`)) return;
-  await new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
-}
-
 async function pdfParaImagens(url) {
   try {
-    await carregarScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    if(!window.pdfjsLib) {
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        s.onload=()=>{
+          window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          res();
+        };
+        s.onerror=rej;
+        document.head.appendChild(s);
+      });
+    }
     const resp = await fetch(url);
-    const buf = await resp.arrayBuffer();
-    const pdf = await window.pdfjsLib.getDocument({data:buf}).promise;
+    const arrayBuffer = await resp.arrayBuffer();
+    const pdf = await window.pdfjsLib.getDocument({data:arrayBuffer}).promise;
     const imgs = [];
     for(let p=1;p<=pdf.numPages;p++) {
       const page = await pdf.getPage(p);
@@ -1181,23 +1186,16 @@ async function baixarDossie() {
   for(const doc of DOCS) {
     const st = getDocState(docs, doc.id);
     if(st.na) continue;
-    const arqs = getArquivos(st);
-    for(const a of arqs) todosArquivos.push({docNome:doc.n, arquivo:a});
+    const arquivos = getArquivos(st);
+    for(const a of arquivos) todosArquivos.push({docNome:doc.n, arquivo:a});
   }
-  if(!todosArquivos.length) { alert('Nenhum documento foi enviado ainda.'); return; }
-
-  showLoading('Carregando bibliotecas...');
+  if(todosArquivos.length===0) { alert('Nenhum documento foi enviado ainda para este colaborador.'); return; }
+  showLoading('Iniciando geração do dossiê...');
   try {
-    // Load jsPDF
-    await carregarScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
-    const { jsPDF } = window.jspdf;
-
     const c = currentColab;
     const dataGeracao = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-    const nomeArq = c.nome.replace(/\s+/g,'_');
-    const dataArq = new Date().toISOString().slice(0,10);
 
-    // ---- Converter todos os arquivos ----
+    // Convert all files to base64 images
     const processados = [];
     for(let i=0;i<todosArquivos.length;i++) {
       const item = todosArquivos[i];
@@ -1207,99 +1205,91 @@ async function baixarDossie() {
       let imagens = [];
       if(isPdf) {
         const imgs = await pdfParaImagens(item.arquivo.url);
-        imagens = imgs || [];
+        imagens = imgs || ['ERR:'+item.arquivo.url];
       } else if(isImg) {
         try {
           const resp = await fetch(item.arquivo.url);
           const blob = await resp.blob();
           const b64 = await new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result);r.readAsDataURL(blob);});
           imagens = [b64];
-        } catch(e) { imagens = []; }
-      }
+        } catch(e) { imagens = ['ERR:'+item.arquivo.url]; }
+      } else { imagens = ['ERR:'+item.arquivo.url]; }
       processados.push({...item, imagens});
     }
 
-    document.getElementById('loading-msg').textContent = 'Gerando PDF...';
+    document.getElementById('loading-msg').textContent = 'Montando PDF...';
 
-    const pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
-    const PW=210, PH=297, M=12, CW=210-24;
+    // Build printable HTML with all images embedded
+    const nomeArq = c.nome.replace(/\s+/g,'_');
+    const dataArq = new Date().toISOString().slice(0,10);
+    let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Dossie_${nomeArq}</title>
+    <style>
+      @page { size: A4; margin: 12mm; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: Arial, sans-serif; background: white; color: #1c1c1a; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .capa { min-height: 200px; padding: 40px 0 30px; border-bottom: 3px solid #1a3a2a; margin-bottom: 20px; }
+      .capa-topo { background: #1a3a2a; color: white; padding: 14px 20px; border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px; }
+      .capa-logo { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+      .capa-titulo { font-size: 15px; font-weight: bold; }
+      .capa-dados { padding: 0 4px; }
+      .capa-nome { font-size: 20px; font-weight: bold; color: #1a3a2a; margin-bottom: 8px; }
+      .capa-meta { font-size: 12px; color: #555; line-height: 2; }
+      .doc-page { page-break-before: always; padding-top: 4px; }
+      .doc-header { background: #1a3a2a; color: white; padding: 8px 14px; border-radius: 6px; margin-bottom: 10px; }
+      .doc-num { font-size: 10px; opacity: 0.75; }
+      .doc-nome { font-size: 12px; font-weight: bold; line-height: 1.4; }
+      .doc-img { width: 100%; height: auto; display: block; margin-bottom: 6px; border: 1px solid #eee; border-radius: 3px; }
+      .rodape { margin-top: 20px; border-top: 1px solid #ddd; padding-top: 8px; font-size: 9px; color: #aaa; text-align: center; }
+      .err-box { border: 1px solid #1d9e75; border-radius: 6px; padding: 12px; background: #e1f5ee; color: #0f6e56; font-size: 11px; }
+    </style>
+    </head><body>
+    <div class="capa">
+      <div class="capa-topo"><div class="capa-logo">PA</div><div class="capa-titulo">Parente Andrade<br>Dossiê de Documentação</div></div>
+      <div class="capa-dados">
+        <div class="capa-nome">${c.nome}</div>
+        <div class="capa-meta">
+          Função: <b>${c.funcao}</b><br>
+          Centro de Custo: <b>${c.centro_custo}</b><br>
+          CPF: <b>${c.cpf}</b><br>
+          Gerado em: <b>${dataGeracao}</b>
+        </div>
+      </div>
+    </div>`;
 
-    // ---- CAPA ----
-    pdf.setFillColor(26,58,42);
-    pdf.rect(0,0,PW,36,'F');
-    pdf.setTextColor(255,255,255);
-    pdf.setFontSize(20); pdf.setFont('helvetica','bold');
-    pdf.text('PA', M, 22);
-    pdf.setFontSize(12); pdf.setFont('helvetica','normal');
-    pdf.text('Parente Andrade  —  Dossie de Documentacao', M+18, 22);
-    pdf.setFontSize(9); pdf.setFont('helvetica','normal');
-    pdf.text('Controle de Admissao', M+18, 29);
-
-    pdf.setTextColor(26,58,42);
-    pdf.setFontSize(18); pdf.setFont('helvetica','bold');
-    pdf.text(c.nome, M, 56);
-    pdf.setFontSize(10); pdf.setFont('helvetica','normal'); pdf.setTextColor(80,80,80);
-    pdf.text('Funcao: '+c.funcao, M, 66);
-    pdf.text('Centro de Custo: '+c.centro_custo, M, 73);
-    pdf.text('CPF: '+c.cpf, M, 80);
-    pdf.text('Gerado em: '+dataGeracao, M, 87);
-    pdf.setDrawColor(26,58,42); pdf.setLineWidth(0.4);
-    pdf.line(M, 93, PW-M, 93);
-    pdf.setFontSize(9); pdf.setTextColor(150,150,150);
-    pdf.text('Total de arquivos: '+processados.length, M, 100);
-
-    // ---- PÁGINAS DE DOCUMENTOS ----
-    let docNum=0;
+    let num=0;
     for(const item of processados) {
-      docNum++;
-      for(let imgIdx=0; imgIdx<item.imagens.length; imgIdx++) {
-        pdf.addPage();
-        const img = item.imagens[imgIdx];
-
-        // Header
-        pdf.setFillColor(26,58,42);
-        pdf.roundedRect(M, 8, CW, 15, 2, 2, 'F');
-        pdf.setTextColor(255,255,255);
-        pdf.setFontSize(8); pdf.setFont('helvetica','normal');
-        pdf.text(`Doc ${docNum}/${processados.length}${item.imagens.length>1?' — Pagina '+(imgIdx+1)+'/'+item.imagens.length:''}`, M+4, 14);
-        pdf.setFontSize(10); pdf.setFont('helvetica','bold');
-        const nomeDoc = pdf.splitTextToSize(item.docNome, CW-8);
-        pdf.text(nomeDoc[0], M+4, 20);
-
-        // Image
-        const imgEl = new Image();
-        await new Promise(res=>{imgEl.onload=res; imgEl.src=img;});
-        const imgW = imgEl.naturalWidth;
-        const imgH = imgEl.naturalHeight;
-        const ratio = imgH/imgW;
-        const drawW = CW;
-        const drawH = Math.min(drawW*ratio, PH-M-28);
-        const fmt = img.startsWith('data:image/png')?'PNG':'JPEG';
-        pdf.addImage(img, fmt, M, 26, drawW, drawH);
+      num++;
+      html+=`<div class="doc-page">
+        <div class="doc-header">
+          <div class="doc-num">Documento ${num} de ${processados.length}</div>
+          <div class="doc-nome">${item.docNome}</div>
+        </div>`;
+      for(const img of item.imagens) {
+        if(img.startsWith('ERR:')) {
+          html+=`<div class="err-box">📄 Arquivo: <b>${item.arquivo.nome}</b><br>Não foi possível converter. Acesse: <a href="${img.replace('ERR:','')}">${img.replace('ERR:','')}</a></div>`;
+        } else {
+          html+=`<img class="doc-img" src="${img}">`;
+        }
       }
-
-      // If no images
-      if(item.imagens.length===0) {
-        pdf.addPage();
-        pdf.setFillColor(26,58,42);
-        pdf.roundedRect(M, 8, CW, 15, 2, 2, 'F');
-        pdf.setTextColor(255,255,255);
-        pdf.setFontSize(8); pdf.setFont('helvetica','normal');
-        pdf.text(`Doc ${docNum}/${processados.length}`, M+4, 14);
-        pdf.setFontSize(10); pdf.setFont('helvetica','bold');
-        pdf.text(item.docNome, M+4, 20);
-        pdf.setTextColor(80,80,80); pdf.setFontSize(10); pdf.setFont('helvetica','normal');
-        pdf.text('Arquivo nao foi possivel converter. Acesse o link original no sistema.', M, 40, {maxWidth:CW});
-      }
+      html+=`</div>`;
     }
+    html+=`<div class="rodape">Parente Andrade — Sistema de Controle de Documentação · ${dataGeracao}</div>
+    <script>window.onload=function(){window.focus();window.print();};<\/script>
+    </body></html>`;
 
-    // Rodapé na última página
-    pdf.setFontSize(8); pdf.setTextColor(180,180,180);
-    pdf.text('Parente Andrade — Sistema de Controle de Documentacao — '+dataGeracao, PW/2, PH-6, {align:'center'});
+    const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+    const blobUrl = URL.createObjectURL(blob);
+    const win = window.open(blobUrl, '_blank');
+    if(!win) {
+      // fallback: direct download html
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `Dossie_${nomeArq}_${dataArq}.html`;
+      a.click();
+    }
+    setTimeout(()=>URL.revokeObjectURL(blobUrl), 30000);
 
-    pdf.save(`Dossie_${nomeArq}_${dataArq}.pdf`);
-
-  } catch(e){ alert('Erro ao gerar PDF: '+e.message); console.error(e); }
+  } catch(e){ alert('Erro ao gerar dossiê: '+e.message); console.error(e); }
   hideLoading();
 }
 
