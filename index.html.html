@@ -1194,23 +1194,12 @@ async function baixarDossie() {
   try {
     const c = currentColab;
     const dataGeracao = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-    const CSS = `@page{margin:10mm;size:A4;}*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,sans-serif;color:#1c1c1a;background:white;}
-      .capa{text-align:center;padding:60px 40px;border-bottom:3px solid #1a3a2a;margin-bottom:30px;}
-      .capa-logo{font-size:36px;font-weight:900;color:#1a3a2a;letter-spacing:-1px;}
-      .capa h1{font-size:22px;color:#1a3a2a;margin:20px 0 8px;}
-      .capa .meta{font-size:13px;color:#555;line-height:2;}
-      .doc-page{page-break-before:always;}
-      .doc-header{background:#1a3a2a;color:white;padding:10px 16px;border-radius:6px;margin-bottom:12px;}
-      .doc-header .num{font-size:11px;opacity:0.7;margin-bottom:2px;}
-      .doc-header .nome{font-size:13px;font-weight:bold;line-height:1.4;}
-      .img-wrap img{width:100%;height:auto;display:block;border:1px solid #eee;border-radius:4px;margin-bottom:8px;}
-      .rodape{margin-top:30px;padding-top:10px;border-top:1px solid #ddd;font-size:10px;color:#aaa;text-align:center;}`;
 
-    // Convert all files
+    // Convert all files to base64 images
     const processados = [];
     for(let i=0;i<todosArquivos.length;i++) {
       const item = todosArquivos[i];
-      document.getElementById('loading-msg').textContent = `Convertendo arquivo ${i+1} de ${todosArquivos.length}... aguarde`;
+      document.getElementById('loading-msg').textContent = `Convertendo arquivo ${i+1} de ${todosArquivos.length}...`;
       const isPdf = /\.pdf$/i.test(item.arquivo.nome);
       const isImg = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(item.arquivo.nome);
       let imagens = [];
@@ -1228,113 +1217,79 @@ async function baixarDossie() {
       processados.push({...item, imagens});
     }
 
-    // Build HTML
-    let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Dossiê — ${c.nome}</title><style>${CSS}</style></head><body>
-    <div class="capa"><div class="capa-logo">PA</div><h1>Dossiê de Documentação</h1>
-    <div class="meta"><strong>${c.nome}</strong><br>${c.funcao} · ${c.centro_custo}<br>CPF: ${c.cpf}<br>Gerado em: ${dataGeracao}</div></div>`;
+    document.getElementById('loading-msg').textContent = 'Montando PDF...';
+
+    // Build printable HTML with all images embedded
+    const nomeArq = c.nome.replace(/\s+/g,'_');
+    const dataArq = new Date().toISOString().slice(0,10);
+    let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Dossie_${nomeArq}</title>
+    <style>
+      @page { size: A4; margin: 12mm; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: Arial, sans-serif; background: white; color: #1c1c1a; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .capa { min-height: 200px; padding: 40px 0 30px; border-bottom: 3px solid #1a3a2a; margin-bottom: 20px; }
+      .capa-topo { background: #1a3a2a; color: white; padding: 14px 20px; border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; gap: 14px; }
+      .capa-logo { font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+      .capa-titulo { font-size: 15px; font-weight: bold; }
+      .capa-dados { padding: 0 4px; }
+      .capa-nome { font-size: 20px; font-weight: bold; color: #1a3a2a; margin-bottom: 8px; }
+      .capa-meta { font-size: 12px; color: #555; line-height: 2; }
+      .doc-page { page-break-before: always; padding-top: 4px; }
+      .doc-header { background: #1a3a2a; color: white; padding: 8px 14px; border-radius: 6px; margin-bottom: 10px; }
+      .doc-num { font-size: 10px; opacity: 0.75; }
+      .doc-nome { font-size: 12px; font-weight: bold; line-height: 1.4; }
+      .doc-img { width: 100%; height: auto; display: block; margin-bottom: 6px; border: 1px solid #eee; border-radius: 3px; }
+      .rodape { margin-top: 20px; border-top: 1px solid #ddd; padding-top: 8px; font-size: 9px; color: #aaa; text-align: center; }
+      .err-box { border: 1px solid #1d9e75; border-radius: 6px; padding: 12px; background: #e1f5ee; color: #0f6e56; font-size: 11px; }
+    </style>
+    </head><body>
+    <div class="capa">
+      <div class="capa-topo"><div class="capa-logo">PA</div><div class="capa-titulo">Parente Andrade<br>Dossiê de Documentação</div></div>
+      <div class="capa-dados">
+        <div class="capa-nome">${c.nome}</div>
+        <div class="capa-meta">
+          Função: <b>${c.funcao}</b><br>
+          Centro de Custo: <b>${c.centro_custo}</b><br>
+          CPF: <b>${c.cpf}</b><br>
+          Gerado em: <b>${dataGeracao}</b>
+        </div>
+      </div>
+    </div>`;
 
     let num=0;
     for(const item of processados) {
       num++;
-      html+=`<div class="doc-page"><div class="doc-header"><div class="num">Documento ${num} de ${processados.length}</div><div class="nome">${item.docNome}</div></div><div class="img-wrap">`;
+      html+=`<div class="doc-page">
+        <div class="doc-header">
+          <div class="doc-num">Documento ${num} de ${processados.length}</div>
+          <div class="doc-nome">${item.docNome}</div>
+        </div>`;
       for(const img of item.imagens) {
         if(img.startsWith('ERR:')) {
-          html+=`<div style="border:1px solid #1d9e75;border-radius:6px;padding:14px;background:#e1f5ee;color:#0f6e56;font-size:12px;margin-bottom:8px;">
-            Arquivo: ${item.arquivo.nome} — não foi possível converter automaticamente.<br>
-            <a href="${img.replace('ERR:','')}" target="_blank" style="color:#0f6e56;">Clique aqui para acessar o arquivo original</a></div>`;
+          html+=`<div class="err-box">📄 Arquivo: <b>${item.arquivo.nome}</b><br>Não foi possível converter. Acesse: <a href="${img.replace('ERR:','')}">${img.replace('ERR:','')}</a></div>`;
         } else {
-          html+=`<img src="${img}" alt="${item.arquivo.nome}">`;
+          html+=`<img class="doc-img" src="${img}">`;
         }
       }
-      html+=`</div></div>`;
+      html+=`</div>`;
     }
-    html+=`<div class="rodape">Parente Andrade — Controle de Documentação · ${dataGeracao}</div></body></html>`;
+    html+=`<div class="rodape">Parente Andrade — Sistema de Controle de Documentação · ${dataGeracao}</div>
+    <script>window.onload=function(){window.focus();window.print();};<\/script>
+    </body></html>`;
 
-    // Render to PDF using jsPDF
-    document.getElementById('loading-msg').textContent = 'Montando PDF final...';
-
-    // Load jsPDF if needed
-    if(!window.jspdf) {
-      await new Promise((res,rej)=>{
-        const s=document.createElement('script');
-        s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-        s.onload=res; s.onerror=rej;
-        document.head.appendChild(s);
-      });
+    const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+    const blobUrl = URL.createObjectURL(blob);
+    const win = window.open(blobUrl, '_blank');
+    if(!win) {
+      // fallback: direct download html
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `Dossie_${nomeArq}_${dataArq}.html`;
+      a.click();
     }
+    setTimeout(()=>URL.revokeObjectURL(blobUrl), 30000);
 
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-    const PW = 210; const PH = 297;
-    const MARGIN = 12;
-    const CONTENT_W = PW - MARGIN*2;
-
-    // ---- CAPA ----
-    pdf.setFillColor(26,58,42);
-    pdf.rect(0,0,PW,40,'F');
-    pdf.setTextColor(255,255,255);
-    pdf.setFontSize(22); pdf.setFont('helvetica','bold');
-    pdf.text('PA', MARGIN, 26);
-    pdf.setFontSize(14); pdf.setFont('helvetica','normal');
-    pdf.text('Parente Andrade — Dossiê de Documentação', MARGIN+14, 26);
-    pdf.setTextColor(26,58,42);
-    pdf.setFontSize(16); pdf.setFont('helvetica','bold');
-    pdf.text(c.nome, MARGIN, 60);
-    pdf.setFontSize(11); pdf.setFont('helvetica','normal');
-    pdf.setTextColor(80,80,80);
-    pdf.text(`${c.funcao}  ·  ${c.centro_custo}`, MARGIN, 70);
-    pdf.text(`CPF: ${c.cpf}`, MARGIN, 78);
-    pdf.text(`Gerado em: ${dataGeracao}`, MARGIN, 86);
-    pdf.setDrawColor(26,58,42);
-    pdf.setLineWidth(0.5);
-    pdf.line(MARGIN, 92, PW-MARGIN, 92);
-
-    // ---- DOCS ----
-    let num = 0;
-    for(const item of processados) {
-      num++;
-      pdf.addPage();
-
-      // Header bar
-      pdf.setFillColor(26,58,42);
-      pdf.roundedRect(MARGIN, 10, CONTENT_W, 16, 2, 2, 'F');
-      pdf.setTextColor(255,255,255);
-      pdf.setFontSize(8); pdf.setFont('helvetica','normal');
-      pdf.text(`Documento ${num} de ${processados.length}`, MARGIN+4, 16);
-      pdf.setFontSize(11); pdf.setFont('helvetica','bold');
-      pdf.text(item.docNome, MARGIN+4, 23, {maxWidth: CONTENT_W-8});
-
-      let yPos = 32;
-      for(const img of item.imagens) {
-        if(img.startsWith('ERR:')) {
-          pdf.setTextColor(15,110,86);
-          pdf.setFontSize(10); pdf.setFont('helvetica','normal');
-          pdf.text('Arquivo não convertível. Acesse o link original no sistema.', MARGIN, yPos+8);
-          yPos += 20;
-        } else {
-          // Calculate image dimensions to fit page
-          const tmpImg = new Image();
-          await new Promise(res=>{tmpImg.onload=res; tmpImg.src=img;});
-          const imgW = tmpImg.naturalWidth;
-          const imgH = tmpImg.naturalHeight;
-          const ratio = imgH/imgW;
-          const drawW = CONTENT_W;
-          const drawH = Math.min(drawW*ratio, PH - yPos - MARGIN);
-          const fmt = img.startsWith('data:image/png')?'PNG':'JPEG';
-          if(yPos + drawH > PH - MARGIN) { pdf.addPage(); yPos = MARGIN; }
-          pdf.addImage(img, fmt, MARGIN, yPos, drawW, drawH);
-          yPos += drawH + 4;
-        }
-      }
-    }
-
-    // ---- RODAPÉ última página ----
-    pdf.setFontSize(8); pdf.setTextColor(170,170,170); pdf.setFont('helvetica','normal');
-    pdf.text(`Parente Andrade — Sistema de Controle de Documentação · ${dataGeracao}`, PW/2, PH-6, {align:'center'});
-
-    pdf.save(`Dossie_${c.nome.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.pdf`);
-
-  } catch(e){alert('Erro ao gerar dossiê: '+e.message); console.error(e);}
+  } catch(e){ alert('Erro ao gerar dossiê: '+e.message); console.error(e); }
   hideLoading();
 }
 
