@@ -1250,11 +1250,14 @@ async function baixarDossie() {
     }
     html+=`<div class="rodape">Parente Andrade — Controle de Documentação · ${dataGeracao}</div></body></html>`;
 
-    const win = window.open('','_blank');
-    if(!win){alert('Permita pop-ups neste site para gerar o dossiê.');hideLoading();return;}
-    win.document.write(html);
-    win.document.close();
-    win.onload=()=>{setTimeout(()=>{win.focus();win.print();},1200);};
+    const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Dossie_${c.nome.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.html`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(url); document.body.removeChild(a); }, 1000);
   } catch(e){alert('Erro ao gerar dossiê: '+e.message);}
   hideLoading();
 }
