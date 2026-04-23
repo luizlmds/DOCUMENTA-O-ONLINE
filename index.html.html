@@ -338,8 +338,15 @@ create policy if not exists "allow_all_docs" on documentos for all using (true);
     </div>
   </div>
   <div class="collab-content">
-    <div class="alert alert-info" style="margin-bottom:16px;">
+    <div class="alert alert-info" style="margin-bottom:12px;">
       Envie os documentos listados abaixo. Utilize o botão 📎 para selecionar até 6 arquivos (PDF ou foto) por documento, ou o botão 📷 para tirar uma foto com a câmera. Após o envio, o RH irá analisar cada documento.
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;background:white;border:1px solid #e0ddd5;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;">
+      <span style="font-weight:600;color:#6b6b68;margin-right:4px;">Legenda:</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:#ccc;display:inline-block;flex-shrink:0;"></span> Nenhum documento</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:#ef9f27;display:inline-block;flex-shrink:0;"></span> Enviado / Em análise</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:#1d9e75;display:inline-block;flex-shrink:0;"></span> Aprovado</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:#e24b4a;display:inline-block;flex-shrink:0;"></span> Reprovado</span>
     </div>
     <div id="cv-docs"></div>
     <div id="cv-deps"></div>
@@ -449,7 +456,13 @@ create policy if not exists "allow_all_docs" on documentos for all using (true);
         <button class="btn btn-sm btn-danger" onclick="excluirColaborador()">🗑️ Excluir</button>
       </div>
     </div>
-    <div class="section-label">Documentos Pessoais</div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;background:white;border:1px solid #e0ddd5;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;">
+      <span style="font-weight:600;color:#6b6b68;margin-right:4px;">Legenda:</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:#ccc;display:inline-block;flex-shrink:0;"></span> Nenhum documento</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:#ef9f27;display:inline-block;flex-shrink:0;"></span> Enviado / Em análise</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:#1d9e75;display:inline-block;flex-shrink:0;"></span> Aprovado</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:#e24b4a;display:inline-block;flex-shrink:0;"></span> Reprovado</span>
+    </div>    <div class="section-label">Documentos Pessoais</div>
     <div id="dv-docs"></div>
     <div class="section-label" style="margin-top:24px;">Dependentes</div>
     <div id="dv-deps"></div>
