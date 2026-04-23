@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parente Andrade – Controle de Documentação</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green-dark: #1a3a2a;
+    --green-mid: #1d9e75;
+    --green-light: #e1f5ee;
+    --green-text: #0f6e56;
+    --amber: #ef9f27;
+    --amber-bg: #faeeda;
+    --amber-text: #854f0b;
+    --red: #e24b4a;
+    --red-bg: #fcebeb;
+    --red-text: #a32d2d;
+    --gray-bg: #f5f5f2;
+    --gray-border: #e0ddd5;
+    --text-main: #1c1c1a;
+    --text-muted: #6b6b68;
+    --white: #ffffff;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--gray-bg); color: var(--text-main); font-size: 14px; min-height: 100vh; }
+
+  /* ===== LAYOUT ===== */
+  .app { display: flex; flex-direction: column; min-height: 100vh; }
+  .header { background: var(--green-dark); color: white; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+  .header-brand { display: flex; align-items: center; gap: 12px; }
+  .header-logo { width: 36px; height: 36px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .header-logo img { width: 28px; }
+  .header-logo-text { font-weight: 700; font-size: 16px; letter-spacing: -0.3px; }
+  .header-logo-sub { font-size: 11px; opacity: 0.65; margin-top: -2px; }
+  .header-right { display: flex; align-items: center; gap: 10px; font-size: 13px; opacity: 0.85; }
+  .page { flex: 1; padding: 24px; max-width: 960px; margin: 0 auto; width: 100%; }
+
+  /* ===== CARDS ===== */
+  .card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--gray-border); box-shadow: var(--shadow); padding: 20px; margin-bottom: 16px; }
+  .card-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+
+  /* ===== BUTTONS ===== */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; font-family: inherit; white-space: nowrap; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: var(--green-dark); color: white; border-color: var(--green-dark); }
+  .btn-primary:hover:not(:disabled) { background: #244d38; }
+  .btn-outline { background: transparent; color: var(--text-main); border-color: var(--gray-border); }
+  .btn-outline:hover:not(:disabled) { background: var(--gray-bg); }
+  .btn-danger { background: var(--red-bg); color: var(--red-text); border-color: #f7c1c1; }
+  .btn-danger:hover:not(:disabled) { background: #f7c1c1; }
+  .btn-sm { padding: 5px 11px; font-size: 12px; }
+  .btn-icon { width: 32px; height: 32px; padding: 0; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; }
+
+  /* ===== FORMS ===== */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  input, select, textarea { padding: 9px 12px; border-radius: 7px; border: 1px solid var(--gray-border); font-size: 13px; font-family: inherit; background: white; color: var(--text-main); transition: border 0.15s; width: 100%; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--green-mid); box-shadow: 0 0 0 3px rgba(29,158,117,0.12); }
+  input::placeholder { color: #bbb; }
+
+  /* ===== TABS ===== */
+  .tabs { display: flex; gap: 2px; background: var(--gray-bg); border-radius: 10px; padding: 4px; margin-bottom: 20px; }
+  .tab { flex: 1; padding: 8px 12px; text-align: center; font-size: 13px; font-weight: 500; border-radius: 7px; cursor: pointer; color: var(--text-muted); transition: all 0.15s; border: none; background: transparent; font-family: inherit; }
+  .tab.active { background: white; color: var(--green-dark); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+  /* ===== LISTA COLABORADORES ===== */
+  .colab-item { background: white; border: 1px solid var(--gray-border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 14px; transition: box-shadow 0.15s; }
+  .colab-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--green-light); color: var(--green-text); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+  .colab-info { flex: 1; min-width: 0; }
+  .colab-name { font-weight: 600; font-size: 14px; }
+  .colab-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .colab-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .progress-wrap { display: flex; align-items: center; gap: 7px; }
+  .progress-bar { width: 80px; height: 6px; background: var(--gray-border); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 3px; background: var(--green-mid); transition: width 0.4s; }
+  .pct-label { font-size: 11px; color: var(--text-muted); min-width: 28px; }
+
+  /* ===== BADGES ===== */
+  .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: var(--green-light); color: var(--green-text); }
+  .badge-amber { background: var(--amber-bg); color: var(--amber-text); }
+  .badge-gray { background: var(--gray-bg); color: var(--text-muted); border: 1px solid var(--gray-border); }
+  .badge-red { background: var(--red-bg); color: var(--red-text); }
+
+  /* ===== STATUS DOT ===== */
+  .dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+  .dot-gray { background: #ccc; }
+  .dot-amber { background: var(--amber); }
+  .dot-green { background: var(--green-mid); }
+  .dot-red { background: var(--red); }
+
+  /* ===== CHECKLIST DOCS ===== */
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin: 20px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--gray-border); }
+  .doc-row { background: white; border: 1px solid var(--gray-border); border-radius: 8px; padding: 11px 14px; margin-bottom: 7px; display: flex; align-items: flex-start; gap: 10px; transition: border 0.15s; }
+  .doc-row.na-row { opacity: 0.45; }
+  .doc-num { width: 24px; height: 24px; border-radius: 50%; background: var(--green-dark); color: white; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .doc-body { flex: 1; min-width: 0; }
+  .doc-name { font-size: 13px; line-height: 1.45; }
+  .doc-file { font-size: 11px; color: var(--green-text); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+  .doc-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-top: 1px; }
+  .upload-btn { width: 30px; height: 30px; border-radius: 6px; border: 1px dashed var(--gray-border); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; color: var(--text-muted); transition: all 0.15s; }
+  .upload-btn:hover { background: var(--gray-bg); border-style: solid; color: var(--green-dark); }
+  .upload-btn input[type=file] { display: none; }
+  .recruiter-btns { display: flex; gap: 4px; align-items: center; }
+  .approve-btn { width: 26px; height: 26px; border-radius: 5px; border: 1px solid; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; background: transparent; transition: background 0.15s; }
+  .approve-btn.ok { border-color: var(--green-mid); color: var(--green-text); }
+  .approve-btn.ok:hover { background: var(--green-light); }
+  .approve-btn.fail { border-color: var(--red); color: var(--red-text); }
+  .approve-btn.fail:hover { background: var(--red-bg); }
+  .na-btn { font-size: 10px; font-weight: 700; padding: 3px 6px; border-radius: 5px; border: 1px solid var(--gray-border); background: transparent; cursor: pointer; color: var(--text-muted); transition: all 0.15s; font-family: inherit; }
+  .na-btn.active { background: var(--gray-bg); border-color: #bbb; }
+
+  /* ===== MODAL ===== */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+  .modal { background: white; border-radius: 14px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.18); }
+  .modal-header { padding: 18px 20px 14px; border-bottom: 1px solid var(--gray-border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white; z-index: 1; }
+  .modal-title { font-size: 15px; font-weight: 600; }
+  .modal-body { padding: 18px 20px; }
+  .modal-footer { padding: 14px 20px; border-top: 1px solid var(--gray-border); display: flex; gap: 8px; justify-content: flex-end; }
+  .close-x { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--gray-bg); cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+  .close-x:hover { background: var(--gray-border); }
+
+  /* ===== LINK BOX ===== */
+  .link-box { background: var(--gray-bg); border: 1px solid var(--gray-border); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .link-text { flex: 1; font-size: 12px; font-family: monospace; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ===== ALERTS ===== */
+  .alert { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; }
+  .alert-success { background: var(--green-light); color: var(--green-text); border: 1px solid #9fe1cb; }
+  .alert-error { background: var(--red-bg); color: var(--red-text); border: 1px solid #f7c1c1; }
+  .alert-info { background: #e6f1fb; color: #185fa5; border: 1px solid #b5d4f4; }
+  .alert-warning { background: var(--amber-bg); color: var(--amber-text); border: 1px solid #fac775; }
+
+  /* ===== EMPTY STATE ===== */
+  .empty { text-align: center; padding: 48px 24px; color: var(--text-muted); }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty h3 { font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 6px; }
+  .empty p { font-size: 13px; line-height: 1.5; }
+
+  /* ===== LOADING ===== */
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; gap: 12px; font-size: 14px; color: var(--text-muted); }
+  .loading-spinner-big { width: 36px; height: 36px; border: 3px solid var(--gray-border); border-top-color: var(--green-mid); border-radius: 50%; animation: spin 0.8s linear infinite; }
+
+  /* ===== SETUP SCREEN ===== */
+  .setup-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--gray-bg); padding: 24px; }
+  .setup-card { background: white; border-radius: 16px; padding: 36px; max-width: 520px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.1); }
+  .setup-logo { width: 52px; height: 52px; background: var(--green-dark); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 22px; font-weight: 800; margin-bottom: 20px; }
+  .setup-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .setup-sub { color: var(--text-muted); font-size: 13px; line-height: 1.6; margin-bottom: 24px; }
+  .step-indicator { display: flex; gap: 8px; margin-bottom: 24px; }
+  .step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gray-border); }
+  .step-dot.active { background: var(--green-mid); }
+  .setup-steps { }
+  .setup-step { display: none; }
+  .setup-step.active { display: block; }
+  .code-block { background: #1c1c1a; color: #9fe1cb; padding: 12px 14px; border-radius: 8px; font-family: monospace; font-size: 12px; line-height: 1.7; overflow-x: auto; margin: 10px 0; position: relative; }
+  .instruction-list { list-style: none; counter-reset: inst; }
+  .instruction-list li { counter-increment: inst; padding: 8px 0 8px 32px; position: relative; font-size: 13px; line-height: 1.5; border-bottom: 1px solid var(--gray-bg); }
+  .instruction-list li::before { content: counter(inst); position: absolute; left: 0; top: 10px; width: 22px; height: 22px; background: var(--green-dark); color: white; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .help-link { color: var(--green-mid); text-decoration: none; font-weight: 500; }
+  .help-link:hover { text-decoration: underline; }
+
+  /* ===== LOGIN ===== */
+  .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--gray-bg); padding: 24px; }
+  .login-card { background: white; border-radius: 16px; padding: 36px; max-width: 400px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.1); text-align: center; }
+  .login-logo { width: 60px; height: 60px; background: var(--green-dark); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 26px; font-weight: 800; margin: 0 auto 16px; }
+  .login-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .login-sub { color: var(--text-muted); font-size: 13px; margin-bottom: 28px; }
+  .divider { display: flex; align-items: center; gap: 10px; margin: 16px 0; color: var(--text-muted); font-size: 12px; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--gray-border); }
+
+  /* ===== COLLAB VIEW ===== */
+  .collab-header { background: var(--green-dark); color: white; padding: 20px 24px; }
+  .collab-header h2 { font-size: 18px; font-weight: 700; }
+  .collab-header p { font-size: 13px; opacity: 0.7; margin-top: 4px; }
+  .collab-content { padding: 20px 24px; max-width: 680px; margin: 0 auto; }
+
+  /* ===== DETAIL VIEW ===== */
+  .detail-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+  .detail-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--green-light); color: var(--green-text); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+  .back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); cursor: pointer; margin-bottom: 16px; border: none; background: transparent; font-family: inherit; }
+  .back-link:hover { color: var(--text-main); }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 600px) {
+    .form-grid, .form-grid-3 { grid-template-columns: 1fr; }
+    .page { padding: 14px; }
+    .header { padding: 0 14px; }
+    .colab-item { flex-wrap: wrap; }
+    .progress-wrap { display: none; }
+    .collab-content { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== SETUP SCREEN ===== -->
+<div id="setup-screen" class="setup-screen" style="display:none;">
+  <div class="setup-card">
+    <div class="setup-logo">PA</div>
+    <div class="setup-title">Configuração Inicial</div>
+    <div class="setup-sub">Siga os passos abaixo para conectar o sistema ao Supabase. Você só precisa fazer isso uma vez.</div>
+    <div class="step-indicator">
+      <div class="step-dot active" id="sdot-0"></div>
+      <div class="step-dot" id="sdot-1"></div>
+      <div class="step-dot" id="sdot-2"></div>
+    </div>
+    <div class="setup-steps">
+
+      <!-- STEP 0: Criar conta Supabase -->
+      <div class="setup-step active" id="setup-step-0">
+        <div style="font-size:15px;font-weight:600;margin-bottom:12px;">Passo 1 — Criar projeto no Supabase</div>
+        <ol class="instruction-list">
+          <li>Acesse <a class="help-link" href="https://supabase.com" target="_blank">supabase.com</a> e clique em <strong>Start your project</strong></li>
+          <li>Crie uma conta gratuita com seu e-mail (ou Google)</li>
+          <li>Clique em <strong>New Project</strong>, escolha um nome (ex: <em>parente-andrade-rh</em>) e uma senha forte</li>
+          <li>Aguarde o projeto ser criado (cerca de 1 minuto)</li>
+        </ol>
+        <div style="margin-top:16px;display:flex;justify-content:flex-end;">
+          <button class="btn btn-primary" onclick="nextStep(1)">Projeto criado → Próximo</button>
+        </div>
+      </div>
+
+      <!-- STEP 1: Criar tabelas -->
+      <div class="setup-step" id="setup-step-1">
+        <div style="font-size:15px;font-weight:600;margin-bottom:12px;">Passo 2 — Criar as tabelas no banco</div>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">No painel do Supabase, vá em <strong>SQL Editor</strong> → <strong>New query</strong>, cole o código abaixo e clique em <strong>Run</strong>:</p>
+        <div class="code-block" id="sql-block" style="font-size:11px;">
+-- Tabela de colaboradores
+create table if not exists colaboradores (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,
+  cpf text not null,
+  funcao text not null,
+  centro_custo text not null,
+  criado_em timestamptz default now()
+);
+
+-- Tabela de documentos
+create table if not exists documentos (
+  id uuid primary key default gen_random_uuid(),
+  colaborador_id uuid references colaboradores(id) on delete cascade,
+  doc_id text not null,
+  status text default 'none',
+  na boolean default false,
+  arquivo_url text,
+  arquivo_nome text,
+  atualizado_em timestamptz default now()
+);
+
+-- Storage bucket para arquivos
+insert into storage.buckets (id, name, public)
+values ('documentos', 'documentos', true)
+on conflict do nothing;
+
+-- Permissões de leitura/escrita públicas (ajuste conforme necessário)
+create policy if not exists "allow_all_documentos"
+on storage.objects for all using (bucket_id = 'documentos');
+
+alter table colaboradores enable row level security;
+alter table documentos enable row level security;
+
+create policy if not exists "allow_all_colab" on colaboradores for all using (true);
+create policy if not exists "allow_all_docs" on documentos for all using (true);
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="copiarSQL()" style="margin-top:6px;">📋 Copiar SQL</button>
+        <div style="margin-top:16px;display:flex;justify-content:space-between;">
+          <button class="btn btn-outline" onclick="nextStep(0)">← Voltar</button>
+          <button class="btn btn-primary" onclick="nextStep(2)">SQL executado → Próximo</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Inserir credenciais -->
+      <div class="setup-step" id="setup-step-2">
+        <div style="font-size:15px;font-weight:600;margin-bottom:12px;">Passo 3 — Inserir as credenciais</div>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">No Supabase, vá em <strong>Project Settings → API</strong> e copie os valores abaixo:</p>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Project URL</label>
+          <input type="text" id="cfg-url" placeholder="https://xyzabc.supabase.co">
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Anon public key</label>
+          <input type="text" id="cfg-key" placeholder="eyJhbGciOiJIUzI1NiIsInR...">
+        </div>
+        <div id="setup-msg"></div>
+        <div style="margin-top:16px;display:flex;justify-content:space-between;">
+          <button class="btn btn-outline" onclick="nextStep(1)">← Voltar</button>
+          <button class="btn btn-primary" onclick="salvarConfig()">Conectar e entrar →</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen" class="login-screen" style="display:none;">
+  <div class="login-card">
+    <div class="login-logo">PA</div>
+    <div class="login-title">Parente Andrade</div>
+    <div class="login-sub">Sistema de Controle de Documentação</div>
+    <div class="form-group" style="text-align:left;">
+      <label>E-mail</label>
+      <input type="email" id="login-email" placeholder="recrutador@empresa.com">
+    </div>
+    <div class="form-group" style="margin-top:10px;text-align:left;">
+      <label>Senha</label>
+      <input type="password" id="login-password" placeholder="••••••••">
+    </div>
+    <div id="login-msg" style="margin-top:10px;"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:14px;" onclick="fazerLogin()">Entrar</button>
+    <div class="divider">ou</div>
+    <button class="btn btn-outline" style="width:100%;" onclick="criarConta()">Criar conta de recrutador</button>
+    <div style="margin-top:14px;font-size:11px;color:var(--text-muted);">
+      <a class="help-link" href="#" onclick="resetarConfig()">⚙ Reconfigurar conexão</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COLLAB VIEW (acesso pelo link) ===== -->
+<div id="collab-screen" style="display:none;">
+  <div class="collab-header">
+    <div style="max-width:680px;margin:0 auto;">
+      <div style="font-size:12px;opacity:0.65;margin-bottom:4px;">PARENTE ANDRADE — CHECKLIST DE DOCUMENTAÇÃO</div>
+      <h2 id="cv-nome">Carregando...</h2>
+      <p id="cv-meta"></p>
+    </div>
+  </div>
+  <div class="collab-content">
+    <div class="alert alert-info" style="margin-bottom:16px;">
+      Envie os documentos listados abaixo. Utilize o botão 📎 para selecionar um PDF ou foto da galeria, ou o botão 📷 para tirar uma foto com a câmera. Após o envio, o setor de RH irá analisar cada documento.
+    </div>
+    <div id="cv-docs"></div>
+    <div id="cv-deps"></div>
+    <div style="margin-top:20px;padding:12px;background:var(--gray-bg);border-radius:8px;font-size:11px;color:var(--text-muted);line-height:1.7;">
+      Ao enviar este formulário, você concorda com o tratamento de seus dados pessoais em conformidade com a <strong>Lei Geral de Proteção de Dados (LGPD)</strong>, exclusivamente para fins relacionados a este atendimento.
+    </div>
+  </div>
+</div>
+
+<!-- ===== RECRUITER APP ===== -->
+<div id="recruiter-app" style="display:none;" class="app">
+  <div class="header">
+    <div class="header-brand">
+      <div style="font-size:22px;font-weight:800;color:#9fe1cb;letter-spacing:-1px;">PA</div>
+      <div>
+        <div class="header-logo-text">Parente Andrade</div>
+        <div class="header-logo-sub">Controle de Documentação</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <span id="user-email-label" style="font-size:12px;"></span>
+      <button class="btn btn-outline btn-sm" style="color:white;border-color:rgba(255,255,255,0.3);" onclick="fazerLogout()">Sair</button>
+    </div>
+  </div>
+
+  <!-- LISTA VIEW -->
+  <div id="view-lista" class="page">
+    <div class="tabs">
+      <button class="tab active" onclick="mudarTab('lista')">👥 Colaboradores</button>
+      <button class="tab" onclick="mudarTab('cadastro')">➕ Novo Cadastro</button>
+    </div>
+
+    <!-- LISTA -->
+    <div id="tab-content-lista">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div id="lista-count" style="font-size:13px;color:var(--text-muted);"></div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="search-input" placeholder="Buscar colaborador..." style="width:220px;" oninput="filtrarLista()">
+          <button class="btn btn-primary" onclick="mudarTab('cadastro')">+ Novo</button>
+        </div>
+      </div>
+      <div id="lista-colaboradores"></div>
+    </div>
+
+    <!-- CADASTRO -->
+    <div id="tab-content-cadastro" style="display:none;">
+      <div class="card">
+        <div class="card-title" id="form-titulo">Pré-Cadastro de Colaborador</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Nome completo *</label>
+            <input type="text" id="f-nome" placeholder="Nome completo do colaborador">
+          </div>
+          <div class="form-group">
+            <label>CPF *</label>
+            <input type="text" id="f-cpf" placeholder="000.000.000-00" maxlength="14">
+          </div>
+          <div class="form-group">
+            <label>Função / Cargo *</label>
+            <input type="text" id="f-funcao" placeholder="Ex: Técnico de Segurança">
+          </div>
+          <div class="form-group">
+            <label>Centro de Custo *</label>
+            <input type="text" id="f-cc" placeholder="Ex: CC-001">
+          </div>
+        </div>
+        <div id="form-msg" style="margin-top:10px;"></div>
+        <div style="display:flex;gap:8px;margin-top:16px;">
+          <button class="btn btn-primary" onclick="salvarColaborador()" id="btn-salvar">Salvar Cadastro</button>
+          <button class="btn btn-outline" onclick="cancelarForm()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETAIL VIEW -->
+  <div id="view-detail" class="page" style="display:none;">
+    <button class="back-link" onclick="voltarLista()">← Voltar à lista</button>
+    <div class="detail-header">
+      <div class="detail-avatar" id="dv-avatar"></div>
+      <div>
+        <div style="font-size:18px;font-weight:700;" id="dv-nome"></div>
+        <div style="font-size:13px;color:var(--text-muted);margin-top:2px;" id="dv-meta"></div>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+          <div class="progress-bar" style="width:140px;height:7px;"><div class="progress-fill" id="dv-progress"></div></div>
+          <span style="font-size:12px;color:var(--text-muted);" id="dv-pct"></span>
+          <span id="dv-badge"></span>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Link do Colaborador</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Compartilhe este link com o colaborador para que ele envie os documentos:</div>
+      <div class="link-box">
+        <span class="link-text" id="dv-link"></span>
+        <button class="btn btn-sm btn-primary" onclick="copiarLink()">Copiar</button>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;">
+        <button class="btn btn-sm btn-outline" onclick="editarColaboradorAtual()">✏️ Editar dados</button>
+        <button class="btn btn-sm btn-danger" onclick="excluirColaborador()">🗑️ Excluir</button>
+      </div>
+    </div>
+    <div class="section-label">Documentos Pessoais</div>
+    <div id="dv-docs"></div>
+    <div class="section-label" style="margin-top:24px;">Dependentes</div>
+    <div id="dv-deps"></div>
+  </div>
+</div>
+
+<!-- ===== LOADING OVERLAY ===== -->
+<div id="loading-overlay" class="loading-overlay" style="display:none;">
+  <div class="loading-spinner-big"></div>
+  <div id="loading-msg">Carregando...</div>
+</div>
+
+<!-- ===== MODAL CONTAINER ===== -->
+<div id="modal-container"></div>
+
+<script>
+// =============================================
+// CONFIGURAÇÃO E DOCS LIST
+// =============================================
+const DOCS = [
+  {id:'d01', n:'Ficha de Solicitação de Emprego', dep:false},
+  {id:'d02', n:'ASO – Atestado de Saúde Ocupacional', dep:false},
+  {id:'d03', n:'Fotos 3×4 (2 unidades)', dep:false},
+  {id:'d04', n:'Currículo atualizado', dep:false},
+  {id:'d05', n:'CTPS digital (com todos os dados de registros e contratos)', dep:false},
+  {id:'d06', n:'Caderneta de Inscrição e Registro – CIR (página da foto + página do registro dentro da validade) — somente para marítimos', dep:false},
+  {id:'d07', n:'RG (dentro da validade, prazo de 10 anos) e CPF (na mesma página)', dep:false},
+  {id:'d08', n:'Título de Eleitor', dep:false},
+  {id:'d09', n:'Certificado de Reservista', dep:false},
+  {id:'d10', n:'PIS', dep:false},
+  {id:'d11', n:'CNH — obrigatório para funções de motorista', dep:false},
+  {id:'d12', n:'Registro profissional conforme a profissão (CRF, CRQ, CRT, CREA)', dep:false},
+  {id:'d13', n:'Cartão de vacina atualizado (H1N1, Tétano, Tríplice viral, Febre amarela, Hepatite B) — IMPRESCINDÍVEL', dep:false},
+  {id:'d14', n:'Cartão de vacina Covid-19', dep:false},
+  {id:'d15', n:'Comprovante de residência atualizado com número do CEP completo', dep:false},
+  {id:'d16', n:'Certificados de cursos complementares', dep:false},
+  {id:'d17', n:'Certificado de escolaridade (Fundamental, Médio, Técnico ou Superior)', dep:false},
+  {id:'dep1', n:'Certidão de casamento ou declaração pública de convivência de união estável (emitida pelo cartório)', dep:true},
+  {id:'dep2', n:'RG e CPF do cônjuge (na mesma página)', dep:true},
+  {id:'dep3', n:'Certidão de nascimento dos filhos', dep:true},
+  {id:'dep4', n:'RG e CPF dos filhos', dep:true},
+  {id:'dep5', n:'Comprovante de frequência escolar (filhos com idade entre 7 e 14 anos)', dep:true},
+  {id:'dep6', n:'Cartão de vacina (filhos com idade até 14 anos)', dep:true},
+];
+
+// =============================================
+// STATE
+// =============================================
+let sb = null;
+let colaboradores = [];
+let docsMap = {};
+let currentColab = null;
+let editingId = null;
+let isCollabView = false;
+let currentCollabUrlId = null;
+
+// =============================================
+// INIT
+// =============================================
+async function init() {
+  const url = localStorage.getItem('sb_url');
+  const key = localStorage.getItem('sb_key');
+
+  // Detectar se é link de colaborador
+  const hash = window.location.hash;
+  if (hash.startsWith('#colab/')) {
+    currentCollabUrlId = hash.replace('#colab/','');
+    isCollabView = true;
+  }
+
+  if (!url || !key) {
+    if (isCollabView) {
+      alert('Sistema não configurado. Peça ao recrutador para configurar o sistema.');
+      return;
+    }
+    showSetup();
+    return;
+  }
+
+  const initUrl = url.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
+  sb = supabase.createClient(initUrl, key, {auth:{persistSession:true,autoRefreshToken:true}});
+
+  if (isCollabView) {
+    await carregarVisaoColaborador(currentCollabUrlId);
+    return;
+  }
+
+  // Checar sessão
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    document.getElementById('user-email-label').textContent = session.user.email;
+    await carregarApp();
+  } else {
+    showLogin();
+  }
+}
+
+// =============================================
+// SETUP
+// =============================================
+let setupCurrentStep = 0;
+function showSetup() { document.getElementById('setup-screen').style.display = 'flex'; }
+function nextStep(n) {
+  document.getElementById('setup-step-' + setupCurrentStep).classList.remove('active');
+  document.getElementById('sdot-' + setupCurrentStep).classList.remove('active');
+  setupCurrentStep = n;
+  document.getElementById('setup-step-' + n).classList.add('active');
+  document.getElementById('sdot-' + n).classList.add('active');
+}
+function copiarSQL() {
+  const txt = document.getElementById('sql-block').innerText;
+  navigator.clipboard.writeText(txt).then(() => alert('SQL copiado!'));
+}
+async function salvarConfig() {
+  let url = document.getElementById('cfg-url').value.trim();
+  const key = document.getElementById('cfg-key').value.trim();
+  const msg = document.getElementById('setup-msg');
+  if (!url || !key) { msg.innerHTML = '<div class="alert alert-error">Preencha os dois campos.</div>'; return; }
+  url = url.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
+  document.getElementById('cfg-url').value = url;
+  try {
+    const testSb = supabase.createClient(url, key, {
+      auth: { persistSession: true, autoRefreshToken: true }
+    });
+    const { error } = await testSb.from('colaboradores').select('id').limit(1);
+    if (error) throw error;
+    localStorage.setItem('sb_url', url);
+    localStorage.setItem('sb_key', key);
+    sb = testSb;
+    document.getElementById('setup-screen').style.display = 'none';
+    showLogin();
+  } catch(e) {
+    msg.innerHTML = `<div class="alert alert-error">Erro de conexão: ${e.message}. Verifique a URL e a chave.</div>`;
+  }
+}
+function resetarConfig() {
+  if(confirm('Isso vai apagar a configuração atual. Continuar?')) {
+    localStorage.removeItem('sb_url'); localStorage.removeItem('sb_key');
+    location.reload();
+  }
+}
+
+// =============================================
+// LOGIN
+// =============================================
+function showLogin() { document.getElementById('login-screen').style.display = 'flex'; }
+async function fazerLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value;
+  const msg = document.getElementById('login-msg');
+  if (!email || !pass) { msg.innerHTML='<div class="alert alert-error">Preencha e-mail e senha.</div>'; return; }
+  showLoading('Autenticando...');
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  hideLoading();
+  if (error) { msg.innerHTML=`<div class="alert alert-error">${error.message}</div>`; return; }
+  document.getElementById('user-email-label').textContent = data.user.email;
+  document.getElementById('login-screen').style.display = 'none';
+  await carregarApp();
+}
+async function criarConta() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value;
+  const msg = document.getElementById('login-msg');
+  if (!email || !pass) { msg.innerHTML='<div class="alert alert-error">Preencha e-mail e senha para criar conta.</div>'; return; }
+  if (pass.length < 6) { msg.innerHTML='<div class="alert alert-error">A senha deve ter ao menos 6 caracteres.</div>'; return; }
+  showLoading('Criando conta...');
+  const { error } = await sb.auth.signUp({ email, password: pass });
+  hideLoading();
+  if (error) { msg.innerHTML=`<div class="alert alert-error">${error.message}</div>`; return; }
+  msg.innerHTML='<div class="alert alert-success">Conta criada! Verifique seu e-mail para confirmar, depois faça login.</div>';
+}
+async function fazerLogout() {
+  await sb.auth.signOut();
+  location.reload();
+}
+
+// =============================================
+// CARREGAR APP
+// =============================================
+async function carregarApp() {
+  document.getElementById('recruiter-app').style.display = 'flex';
+  await carregarColaboradores();
+}
+async function carregarColaboradores() {
+  showLoading('Carregando colaboradores...');
+  const { data, error } = await sb.from('colaboradores').select('*').order('criado_em', {ascending:false});
+  hideLoading();
+  if (error) { alert('Erro: '+error.message); return; }
+  colaboradores = data || [];
+  renderLista();
+}
+
+// =============================================
+// RENDER LISTA
+// =============================================
+function getInitials(n) { return (n||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function filtrarLista() { renderLista(document.getElementById('search-input').value.toLowerCase()); }
+
+function renderLista(filtro='') {
+  const el = document.getElementById('lista-colaboradores');
+  const lista = filtro ? colaboradores.filter(c => c.nome.toLowerCase().includes(filtro) || c.funcao.toLowerCase().includes(filtro)) : colaboradores;
+  document.getElementById('lista-count').textContent = lista.length + ' colaborador' + (lista.length !== 1 ? 'es' : '') + ' cadastrado' + (lista.length !== 1 ? 's' : '');
+  if (!lista.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><h3>Nenhum colaborador encontrado</h3><p>Cadastre um novo colaborador clicando em "+ Novo".</p></div>`;
+    return;
+  }
+  el.innerHTML = lista.map(c => {
+    const pct = calcPct(c.id);
+    const badge = pct===100 ? '<span class="badge badge-green">Completo</span>' : pct>0 ? '<span class="badge badge-amber">Em andamento</span>' : '<span class="badge badge-gray">Pendente</span>';
+    return `<div class="colab-item">
+      <div class="avatar">${getInitials(c.nome)}</div>
+      <div class="colab-info">
+        <div class="colab-name">${c.nome}</div>
+        <div class="colab-meta">${c.funcao} &nbsp;·&nbsp; ${c.centro_custo} &nbsp;·&nbsp; ${c.cpf}</div>
+      </div>
+      <div class="colab-actions">
+        <div class="progress-wrap">
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <span class="pct-label">${pct}%</span>
+          ${badge}
+        </div>
+        <button class="btn btn-icon btn-outline" title="Ver documentos" onclick="abrirDetalhe('${c.id}')">📋</button>
+        <button class="btn btn-icon btn-outline" title="Editar" onclick="editarColab('${c.id}')">✏️</button>
+        <button class="btn btn-icon btn-outline" title="Copiar link do colaborador" onclick="mostrarLink('${c.id}')">🔗</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function calcPct(colabId) {
+  const docs = docsMap[colabId] || [];
+  const total = DOCS.filter(d => {
+    const found = docs.find(x => x.doc_id === d.id);
+    return !found || !found.na;
+  }).length;
+  const ok = docs.filter(x => x.status === 'ok').length;
+  return total > 0 ? Math.round(ok / total * 100) : 0;
+}
+
+// =============================================
+// TABS E FORM
+// =============================================
+function mudarTab(t) {
+  document.getElementById('tab-content-lista').style.display = t==='lista' ? '' : 'none';
+  document.getElementById('tab-content-cadastro').style.display = t==='cadastro' ? '' : 'none';
+  document.querySelectorAll('.tab').forEach((el,i) => el.classList.toggle('active', (i===0&&t==='lista')||(i===1&&t==='cadastro')));
+  if (t==='lista') { editingId=null; limparForm(); document.getElementById('form-titulo').textContent='Pré-Cadastro de Colaborador'; }
+}
+function limparForm() {
+  ['f-nome','f-cpf','f-funcao','f-cc'].forEach(id=>{ document.getElementById(id).value=''; });
+  document.getElementById('form-msg').innerHTML='';
+  document.getElementById('btn-salvar').textContent = 'Salvar Cadastro';
+}
+function cancelarForm() { limparForm(); mudarTab('lista'); }
+
+function editarColab(id) {
+  const c = colaboradores.find(x=>x.id===id);
+  if(!c) return;
+  editingId = id;
+  document.getElementById('f-nome').value = c.nome;
+  document.getElementById('f-cpf').value = c.cpf;
+  document.getElementById('f-funcao').value = c.funcao;
+  document.getElementById('f-cc').value = c.centro_custo;
+  document.getElementById('form-titulo').textContent = 'Editar Colaborador';
+  document.getElementById('btn-salvar').textContent = 'Salvar Alterações';
+  mudarTab('cadastro');
+}
+function editarColaboradorAtual() { if(currentColab) editarColab(currentColab.id); }
+
+function mascaraCPF(v) {
+  return v.replace(/\D/g,'').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2');
+}
+document.addEventListener('input', e => { if(e.target.id==='f-cpf') e.target.value = mascaraCPF(e.target.value); });
+
+async function salvarColaborador() {
+  const nome = document.getElementById('f-nome').value.trim();
+  const cpf = document.getElementById('f-cpf').value.trim();
+  const funcao = document.getElementById('f-funcao').value.trim();
+  const cc = document.getElementById('f-cc').value.trim();
+  const msg = document.getElementById('form-msg');
+  if(!nome||!cpf||!funcao||!cc) { msg.innerHTML='<div class="alert alert-error">Preencha todos os campos obrigatórios.</div>'; return; }
+  showLoading('Salvando...');
+  let error;
+  if (editingId) {
+    ({ error } = await sb.from('colaboradores').update({nome,cpf,funcao,centro_custo:cc}).eq('id',editingId));
+  } else {
+    ({ error } = await sb.from('colaboradores').insert({nome,cpf,funcao,centro_custo:cc}));
+  }
+  hideLoading();
+  if (error) { msg.innerHTML=`<div class="alert alert-error">Erro: ${error.message}</div>`; return; }
+  msg.innerHTML='<div class="alert alert-success">' + (editingId?'Dados atualizados':'Colaborador cadastrado') + ' com sucesso!</div>';
+  await carregarColaboradores();
+  setTimeout(()=>{ limparForm(); mudarTab('lista'); },1200);
+}
+
+async function excluirColaborador() {
+  if(!currentColab) return;
+  if(!confirm(`Excluir ${currentColab.nome}? Todos os documentos também serão removidos.`)) return;
+  showLoading('Excluindo...');
+  const { error } = await sb.from('colaboradores').delete().eq('id', currentColab.id);
+  hideLoading();
+  if(error) { alert('Erro: '+error.message); return; }
+  await carregarColaboradores();
+  voltarLista();
+}
+
+// =============================================
+// LINK
+// =============================================
+function getLinkColab(id) {
+  return window.location.origin + window.location.pathname + '#colab/' + id;
+}
+function mostrarLink(id) {
+  const link = getLinkColab(id);
+  const m = criarModal('Link do Colaborador',
+    `<div style="font-size:13px;margin-bottom:10px;">Compartilhe este link com o colaborador para que envie os documentos:</div>
+    <div class="link-box"><span class="link-text">${link}</span></div>
+    <div style="margin-top:8px;font-size:12px;color:var(--text-muted);">Funciona em qualquer navegador, celular ou computador.</div>`,
+    `<button class="btn btn-primary" onclick="navigator.clipboard.writeText('${link}').then(()=>alert('Copiado!'))">Copiar link</button>
+    <button class="btn btn-outline" onclick="fecharModal()">Fechar</button>`
+  );
+}
+function copiarLink() {
+  if(!currentColab) return;
+  navigator.clipboard.writeText(getLinkColab(currentColab.id)).then(()=>alert('Link copiado!'));
+}
+
+// =============================================
+// DETALHE RECRUTADOR
+// =============================================
+async function abrirDetalhe(id) {
+  currentColab = colaboradores.find(x=>x.id===id);
+  if(!currentColab) return;
+  showLoading('Carregando documentos...');
+  const { data, error } = await sb.from('documentos').select('*').eq('colaborador_id', id);
+  hideLoading();
+  docsMap[id] = data || [];
+  document.getElementById('view-lista').style.display = 'none';
+  document.getElementById('view-detail').style.display = '';
+  renderDetalhe();
+}
+function voltarLista() {
+  document.getElementById('view-detail').style.display = 'none';
+  document.getElementById('view-lista').style.display = '';
+  renderLista();
+}
+
+function renderDetalhe() {
+  const c = currentColab;
+  const docs = docsMap[c.id] || [];
+  const pct = calcPct(c.id);
+  document.getElementById('dv-avatar').textContent = getInitials(c.nome);
+  document.getElementById('dv-nome').textContent = c.nome;
+  document.getElementById('dv-meta').textContent = `${c.funcao} · ${c.centro_custo} · ${c.cpf}`;
+  document.getElementById('dv-progress').style.width = pct+'%';
+  document.getElementById('dv-pct').textContent = pct+'% aprovados';
+  document.getElementById('dv-badge').innerHTML = pct===100?'<span class="badge badge-green">Completo</span>':pct>0?'<span class="badge badge-amber">Em andamento</span>':'<span class="badge badge-gray">Pendente</span>';
+  document.getElementById('dv-link').textContent = getLinkColab(c.id);
+  renderDocRows('dv-docs', DOCS.filter(d=>!d.dep), docs, true);
+  renderDocRows('dv-deps', DOCS.filter(d=>d.dep), docs, true);
+}
+
+function getDocState(docs, docId) {
+  return docs.find(x=>x.doc_id===docId) || {doc_id:docId, status:'none', na:false, arquivo_url:null, arquivo_nome:null};
+}
+
+function renderDocRows(containerId, docList, docs, isRecruiter) {
+  const el = document.getElementById(containerId);
+  let num = 0;
+  el.innerHTML = docList.map(doc => {
+    num++;
+    const st = getDocState(docs, doc.id);
+    const dotClass = st.na?'dot-gray':st.status==='ok'?'dot-green':st.status==='fail'?'dot-red':st.status==='analysis'?'dot-amber':'dot-gray';
+    const fileHtml = st.arquivo_url ? `<div class="doc-file">📄 <a href="${st.arquivo_url}" target="_blank" style="color:var(--green-text);">${st.arquivo_nome||'Ver arquivo'}</a></div>` : (isRecruiter&&!st.na?'<div style="font-size:11px;color:var(--text-muted);">Nenhum arquivo enviado</div>':'');
+    let controls = '';
+    if(isRecruiter) {
+      const naActive = st.na?'active':'';
+      controls = `<div class="dot ${dotClass}" title="${dotClass.replace('dot-','')}"></div>
+        <div class="recruiter-btns">
+          <button class="approve-btn ok" title="Aprovar" onclick="setStatus('${doc.id}','ok')">✓</button>
+          <button class="approve-btn fail" title="Reprovar" onclick="setStatus('${doc.id}','fail')">✗</button>
+          <button class="na-btn ${naActive}" title="Não aplicável" onclick="toggleNA('${doc.id}')">N/A</button>
+        </div>`;
+    } else {
+      controls = `<div class="dot ${dotClass}" title="Status"></div>
+        <label class="upload-btn" title="Selecionar PDF ou foto">📎<input type="file" accept="image/*,application/pdf" onchange="uploadDoc('${doc.id}',this)"></label>
+        <button class="upload-btn" title="Abrir câmera" onclick="abrirCamera('${doc.id}')">📷</button>`;
+    }
+    return `<div class="doc-row ${st.na?'na-row':''}" id="row-${doc.id}">
+      <div class="doc-num">${num}</div>
+      <div class="doc-body">
+        <div class="doc-name">${doc.n}${st.na?' <span style="font-size:11px;color:var(--text-muted);">(não aplicável)</span>':''}</div>
+        ${fileHtml}
+        ${st.status==='fail'&&st.obs?`<div style="font-size:11px;color:var(--red-text);margin-top:3px;">⚠ ${st.obs}</div>`:''}
+      </div>
+      <div class="doc-controls">${controls}</div>
+    </div>`;
+  }).join('');
+}
+
+async function setStatus(docId, status) {
+  if(!currentColab) return;
+  const docs = docsMap[currentColab.id] || [];
+  const existing = docs.find(x=>x.doc_id===docId);
+  showLoading('Salvando...');
+  if(existing) {
+    await sb.from('documentos').update({status, na:false}).eq('id', existing.id);
+  } else {
+    await sb.from('documentos').insert({colaborador_id:currentColab.id, doc_id:docId, status, na:false});
+  }
+  await recarregarDocs();
+  hideLoading();
+  renderDetalhe();
+}
+
+async function toggleNA(docId) {
+  if(!currentColab) return;
+  const docs = docsMap[currentColab.id] || [];
+  const existing = docs.find(x=>x.doc_id===docId);
+  const novoNA = !(existing && existing.na);
+  showLoading('Salvando...');
+  if(existing) {
+    await sb.from('documentos').update({na:novoNA, status: novoNA?'none':existing.status}).eq('id', existing.id);
+  } else {
+    await sb.from('documentos').insert({colaborador_id:currentColab.id, doc_id:docId, na:novoNA, status:'none'});
+  }
+  await recarregarDocs();
+  hideLoading();
+  renderDetalhe();
+}
+
+async function recarregarDocs() {
+  const id = currentColab ? currentColab.id : currentCollabUrlId;
+  const { data } = await sb.from('documentos').select('*').eq('colaborador_id', id);
+  if(currentColab) docsMap[currentColab.id] = data||[];
+  return data||[];
+}
+
+// =============================================
+// VISÃO DO COLABORADOR
+// =============================================
+async function carregarVisaoColaborador(colabId) {
+  const url = localStorage.getItem('sb_url');
+  const key = localStorage.getItem('sb_key');
+  if(!url||!key) { alert('Configuração ausente. Contate o RH.'); return; }
+  const cleanUrl2 = url.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
+  sb = supabase.createClient(cleanUrl2, key, {auth:{persistSession:true,autoRefreshToken:true}});
+  showLoading('Carregando checklist...');
+  const { data: colab } = await sb.from('colaboradores').select('*').eq('id', colabId).single();
+  const { data: docs } = await sb.from('documentos').select('*').eq('colaborador_id', colabId);
+  hideLoading();
+  if(!colab) { document.body.innerHTML='<div style="text-align:center;padding:60px;color:#666;">Colaborador não encontrado. Verifique o link.</div>'; return; }
+  document.getElementById('collab-screen').style.display = '';
+  document.getElementById('cv-nome').textContent = colab.nome;
+  document.getElementById('cv-meta').textContent = colab.funcao + ' · ' + colab.centro_custo;
+  document.title = 'Documentação – ' + colab.nome;
+  docsMap[colabId] = docs || [];
+  document.getElementById('cv-docs').innerHTML = '<div class="section-label" style="margin:0 0 10px;">Documentos Pessoais</div>';
+  renderDocRowsCollab('cv-docs', DOCS.filter(d=>!d.dep), docs||[], colabId);
+  document.getElementById('cv-deps').innerHTML = '<div class="section-label" style="margin:16px 0 10px;">Dependentes</div>';
+  renderDocRowsCollab('cv-deps', DOCS.filter(d=>d.dep), docs||[], colabId);
+}
+
+function renderDocRowsCollab(containerId, docList, docs, colabId) {
+  const el = document.getElementById(containerId);
+  let num = 0;
+  const html = docList.map(doc => {
+    num++;
+    const st = getDocState(docs, doc.id);
+    if(st.na) return `<div class="doc-row na-row"><div class="doc-num">${num}</div><div class="doc-body"><div class="doc-name">${doc.n}</div><div style="font-size:11px;color:var(--text-muted);">Não aplicável ao seu cadastro</div></div></div>`;
+    const dotClass = st.status==='ok'?'dot-green':st.status==='fail'?'dot-red':st.status==='analysis'?'dot-amber':'dot-gray';
+    const fileHtml = st.arquivo_url ? `<div class="doc-file">✅ <a href="${st.arquivo_url}" target="_blank">${st.arquivo_nome||'arquivo enviado'}</a></div>` : '';
+    return `<div class="doc-row" id="crow-${doc.id}">
+      <div class="doc-num">${num}</div>
+      <div class="doc-body">
+        <div class="doc-name">${doc.n}</div>
+        ${fileHtml}
+        ${st.status==='fail'?'<div style="font-size:11px;color:var(--red-text);margin-top:3px;">⚠ Documento reprovado — envie novamente.</div>':''}
+      </div>
+      <div class="doc-controls">
+        <div class="dot ${dotClass}"></div>
+        <label class="upload-btn" title="Selecionar PDF ou foto da galeria">📎<input type="file" accept="image/*,application/pdf" onchange="uploadDocCollab('${colabId}','${doc.id}',this)"></label>
+        <button class="upload-btn" title="Tirar foto com câmera" onclick="abrirCameraCollab('${colabId}','${doc.id}')">📷</button>
+      </div>
+    </div>`;
+  }).join('');
+  el.innerHTML += html;
+}
+
+async function uploadDocCollab(colabId, docId, input) {
+  const file = input.files[0];
+  if(!file) return;
+  await uploadArquivo(colabId, docId, file);
+  await carregarVisaoColaborador(colabId);
+}
+
+function abrirCameraCollab(colabId, docId) {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*'; input.capture = 'environment';
+  input.onchange = async () => { if(input.files[0]) { await uploadArquivo(colabId, docId, input.files[0]); await carregarVisaoColaborador(colabId); } };
+  input.click();
+}
+
+// =============================================
+// UPLOAD
+// =============================================
+async function uploadArquivo(colabId, docId, file) {
+  showLoading('Enviando arquivo...');
+  const ext = file.name.split('.').pop();
+  const path = `${colabId}/${docId}-${Date.now()}.${ext}`;
+  const { data: upData, error: upErr } = await sb.storage.from('documentos').upload(path, file, {upsert:true});
+  if(upErr) { hideLoading(); alert('Erro no upload: '+upErr.message); return; }
+  const { data: { publicUrl } } = sb.storage.from('documentos').getPublicUrl(path);
+  const existing = (docsMap[colabId]||[]).find(x=>x.doc_id===docId);
+  if(existing) {
+    await sb.from('documentos').update({status:'analysis', arquivo_url:publicUrl, arquivo_nome:file.name, na:false}).eq('id',existing.id);
+  } else {
+    await sb.from('documentos').insert({colaborador_id:colabId, doc_id:docId, status:'analysis', arquivo_url:publicUrl, arquivo_nome:file.name, na:false});
+  }
+  hideLoading();
+}
+
+async function uploadDoc(docId, input) {
+  if(!currentColab) return;
+  const file = input.files[0];
+  if(!file) return;
+  await uploadArquivo(currentColab.id, docId, file);
+  await recarregarDocs();
+  renderDetalhe();
+}
+
+function abrirCamera(docId) {
+  if(!currentColab) return;
+  const input = document.createElement('input');
+  input.type='file'; input.accept='image/*'; input.capture='environment';
+  input.onchange = async () => { if(input.files[0]) { await uploadArquivo(currentColab.id, docId, input.files[0]); await recarregarDocs(); renderDetalhe(); } };
+  input.click();
+}
+
+// =============================================
+// MODAL
+// =============================================
+function criarModal(titulo, corpo, footer) {
+  document.getElementById('modal-container').innerHTML = `
+    <div class="modal-overlay" onclick="fecharModalSe(event)">
+      <div class="modal">
+        <div class="modal-header"><div class="modal-title">${titulo}</div><button class="close-x" onclick="fecharModal()">×</button></div>
+        <div class="modal-body">${corpo}</div>
+        ${footer?`<div class="modal-footer">${footer}</div>`:''}
+      </div>
+    </div>`;
+}
+function fecharModal() { document.getElementById('modal-container').innerHTML=''; }
+function fecharModalSe(e) { if(e.target===e.currentTarget) fecharModal(); }
+
+// =============================================
+// LOADING
+// =============================================
+function showLoading(msg='Carregando...') { document.getElementById('loading-overlay').style.display='flex'; document.getElementById('loading-msg').textContent=msg; }
+function hideLoading() { document.getElementById('loading-overlay').style.display='none'; }
+
+// =============================================
+// START
+// =============================================
+init();
+</script>
+</body>
+</html>
