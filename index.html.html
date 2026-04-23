@@ -638,7 +638,7 @@ async function carregarApp() {
 }
 async function carregarColaboradores() {
   showLoading('Carregando colaboradores...');
-  const { data, error } = await sb.from('colaboradores').select('*').order('criado_em', {ascending:false});
+  const { data, error } = await sb.from('colaboradores').select('*').order('nome', {ascending:true});
   hideLoading();
   if (error) { alert('Erro: '+error.message); return; }
   colaboradores = data || [];
@@ -703,6 +703,7 @@ function renderLista(filtro='', filtroCC='', filtroFuncao='') {
         <button class="btn btn-icon btn-outline" title="Ver documentos" onclick="abrirDetalhe('${c.id}')">📋</button>
         <button class="btn btn-icon btn-outline" title="Editar" onclick="editarColab('${c.id}')">✏️</button>
         <button class="btn btn-icon btn-outline" title="Copiar link do colaborador" onclick="mostrarLink('${c.id}')">🔗</button>
+        <button class="btn btn-icon btn-outline" title="Excluir colaborador" onclick="excluirColaboradorLista('${c.id}','${c.nome}')" style="color:#e24b4a;border-color:#f7c1c1;">🗑️</button>
       </div>
     </div>`;
   }).join('');
@@ -772,6 +773,15 @@ async function salvarColaborador() {
   msg.innerHTML='<div class="alert alert-success">' + (editingId?'Dados atualizados':'Colaborador cadastrado') + ' com sucesso!</div>';
   await carregarColaboradores();
   setTimeout(()=>{ limparForm(); mudarTab('lista'); },1200);
+}
+
+async function excluirColaboradorLista(id, nome) {
+  if(!confirm(`Excluir ${nome}? Todos os documentos também serão removidos.`)) return;
+  showLoading('Excluindo...');
+  const { error } = await sb.from('colaboradores').delete().eq('id', id);
+  hideLoading();
+  if(error) { alert('Erro: '+error.message); return; }
+  await carregarColaboradores();
 }
 
 async function excluirColaborador() {
