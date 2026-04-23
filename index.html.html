@@ -503,7 +503,7 @@ let currentCollabUrlId = null;
 // INIT
 // =============================================
 const SB_URL_DEFAULT = 'https://ycdgcfucjyehjhczjkyw.supabase.co';
-const SB_KEY_DEFAULT = 'LXVQDCgOwTIB6JKQvMZ6Gw2yWqN3k6TA2uydk0/4v14rsazrjot0/Lh0STH7pY4U+Qtbs3WscGgSOIxmhiET9Q==';
+const SB_KEY_DEFAULT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljZGdjZnVjanllaGpoY3pqa3l3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4OTkzNzUsImV4cCI6MjA5MjQ3NTM3NX0.8CpTdw8Ep1lZeGjzGRU0T4fMUgJCohc7puZGW7Cftwc';
 
 async function init() {
   const url = localStorage.getItem('sb_url') || SB_URL_DEFAULT;
@@ -760,13 +760,25 @@ function getLinkColab(id) {
 }
 function mostrarLink(id) {
   const link = getLinkColab(id);
-  const m = criarModal('Link do Colaborador',
+  window._linkParaCopiar = link;
+  criarModal('Link do Colaborador',
     `<div style="font-size:13px;margin-bottom:10px;">Compartilhe este link com o colaborador para que envie os documentos:</div>
-    <div class="link-box"><span class="link-text">${link}</span></div>
+    <div class="link-box" style="user-select:all;word-break:break-all;"><span style="font-size:12px;font-family:monospace;">${link}</span></div>
     <div style="margin-top:8px;font-size:12px;color:var(--text-muted);">Funciona em qualquer navegador, celular ou computador.</div>`,
-    `<button class="btn btn-primary" onclick="navigator.clipboard.writeText('${link}').then(()=>alert('Copiado!'))">Copiar link</button>
+    `<button class="btn btn-primary" onclick="copiarLinkModal()">Copiar link</button>
     <button class="btn btn-outline" onclick="fecharModal()">Fechar</button>`
   );
+}
+function copiarLinkModal() {
+  const link = window._linkParaCopiar;
+  if(!link) return;
+  if(navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(link).then(() => alert('Link copiado! Cole no WhatsApp para enviar ao colaborador.')).catch(() => {
+      prompt('Copie o link abaixo (Ctrl+C):', link);
+    });
+  } else {
+    prompt('Copie o link abaixo (Ctrl+C):', link);
+  }
 }
 function copiarLink() {
   if(!currentColab) return;
