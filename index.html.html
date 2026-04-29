@@ -84,6 +84,24 @@
   .progress-fill { height: 100%; border-radius: 3px; background: var(--green-mid); transition: width 0.4s; }
   .pct-label { font-size: 11px; color: var(--text-muted); min-width: 28px; }
 
+  /* ===== PASTAS CENTRO DE CUSTO ===== */
+  .cc-folder { margin-bottom: 10px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--gray-border); box-shadow: var(--shadow); }
+  .cc-folder-header { background: var(--green-dark); color: white; padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; transition: background 0.15s; }
+  .cc-folder-header:hover { background: #244d38; }
+  .cc-folder-icon { font-size: 18px; transition: transform 0.2s; flex-shrink: 0; }
+  .cc-folder-icon.open { transform: rotate(0deg); }
+  .cc-folder-icon.closed { transform: rotate(-90deg) translateX(-2px); }
+  .cc-folder-title { flex: 1; font-weight: 700; font-size: 14px; letter-spacing: 0.2px; }
+  .cc-folder-meta { font-size: 12px; opacity: 0.75; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .cc-folder-badge { background: rgba(255,255,255,0.18); border-radius: 12px; padding: 2px 9px; font-size: 11px; font-weight: 600; }
+  .cc-folder-progress { display: flex; align-items: center; gap: 6px; }
+  .cc-folder-bar { width: 60px; height: 5px; background: rgba(255,255,255,0.25); border-radius: 3px; overflow: hidden; }
+  .cc-folder-bar-fill { height: 100%; border-radius: 3px; background: #9fe1cb; transition: width 0.4s; }
+  .cc-folder-body { background: #f9f9f7; display: none; }
+  .cc-folder-body.open { display: block; }
+  .cc-folder-body .colab-item { border-radius: 0; border-left: none; border-right: none; border-top: none; margin-bottom: 0; border-bottom: 1px solid var(--gray-border); }
+  .cc-folder-body .colab-item:last-child { border-bottom: none; }
+
   /* ===== BADGES ===== */
   .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
   .badge-green { background: var(--green-light); color: var(--green-text); }
@@ -695,6 +713,55 @@ function popularFiltros() {
   ccSel.innerHTML = '<option value="">Todos os CCs</option>' + ccs.map(v=>`<option value="${v}"${v===ccVal?' selected':''}>${v}</option>`).join('');
   fnSel.innerHTML = '<option value="">Todas as funções</option>' + fns.map(v=>`<option value="${v}"${v===fnVal?' selected':''}>${v}</option>`).join('');
 }
+// Estado das pastas abertas/fechadas
+const pastasAbertas = new Set();
+
+function togglePasta(cc) {
+  if (pastasAbertas.has(cc)) { pastasAbertas.delete(cc); } else { pastasAbertas.add(cc); }
+  const ccId = cc.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const body = document.getElementById('pasta-body-' + ccId);
+  const icon = document.getElementById('pasta-icon-' + ccId);
+  const aberta = pastasAbertas.has(cc);
+  if (body) { body.classList.toggle('open', aberta); }
+  if (icon) {
+    icon.textContent = aberta ? '📂' : '📁';
+    icon.classList.toggle('open', aberta);
+    icon.classList.toggle('closed', !aberta);
+  }
+}
+
+function renderColabItem(c) {
+  const pct = calcPct(c.id);
+  const badge = pct===100 ? '<span class="badge badge-green">Completo</span>' : pct>0 ? '<span class="badge badge-amber">Em andamento</span>' : '<span class="badge badge-gray">Pendente</span>';
+  const pctEnv = calcEnviado(c.id);
+  return `<div class="colab-item">
+    <div class="avatar">${getInitials(c.nome)}</div>
+    <div class="colab-info">
+      <div class="colab-name">${c.nome}</div>
+      <div class="colab-meta">${c.funcao} &nbsp;·&nbsp; ${c.cpf}</div>
+    </div>
+    <div class="colab-actions">
+      <div class="progress-wrap">
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:#1d9e75;"></div></div>
+            <span style="font-size:11px;color:#1d9e75;min-width:52px;">✓ ${pct}% aprov.</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="progress-bar"><div class="progress-fill" style="width:${pctEnv}%;background:#ef9f27;"></div></div>
+            <span style="font-size:11px;color:#854f0b;min-width:52px;">↑ ${pctEnv}% env.</span>
+          </div>
+        </div>
+        ${badge}
+      </div>
+      <button class="btn btn-icon btn-outline" title="Ver documentos" onclick="abrirDetalhe('${c.id}')">📋</button>
+      <button class="btn btn-icon btn-outline" title="Editar" onclick="editarColab('${c.id}')">✏️</button>
+      <button class="btn btn-icon btn-outline" title="Copiar link do colaborador" onclick="mostrarLink('${c.id}')">🔗</button>
+      <button class="btn btn-icon btn-outline" title="Excluir colaborador" onclick="excluirColaboradorLista('${c.id}','${c.nome}')" style="color:#e24b4a;border-color:#f7c1c1;">🗑️</button>
+    </div>
+  </div>`;
+}
+
 function renderLista(filtro='', filtroCC='', filtroFuncao='') {
   popularFiltros();
   const el = document.getElementById('lista-colaboradores');
@@ -702,39 +769,58 @@ function renderLista(filtro='', filtroCC='', filtroFuncao='') {
   if(filtro) lista = lista.filter(c => c.nome.toLowerCase().includes(filtro) || c.cpf.includes(filtro));
   if(filtroCC) lista = lista.filter(c => c.centro_custo === filtroCC);
   if(filtroFuncao) lista = lista.filter(c => c.funcao === filtroFuncao);
-  document.getElementById('lista-count').textContent = lista.length + ' colaborador' + (lista.length !== 1 ? 'es' : '') + ' cadastrado' + (lista.length !== 1 ? 's' : '');
+
+  const total = lista.length;
+  document.getElementById('lista-count').textContent = total + ' colaborador' + (total !== 1 ? 'es' : '') + ' cadastrado' + (total !== 1 ? 's' : '');
+
   if (!lista.length) {
     el.innerHTML = `<div class="empty"><div class="empty-icon">📋</div><h3>Nenhum colaborador encontrado</h3><p>Cadastre um novo colaborador clicando em "+ Novo".</p></div>`;
     return;
   }
-  el.innerHTML = lista.map(c => {
-    const pct = calcPct(c.id);
-    const badge = pct===100 ? '<span class="badge badge-green">Completo</span>' : pct>0 ? '<span class="badge badge-amber">Em andamento</span>' : '<span class="badge badge-gray">Pendente</span>';
-    const pctEnv = calcEnviado(c.id);
-    return `<div class="colab-item">
-      <div class="avatar">${getInitials(c.nome)}</div>
-      <div class="colab-info">
-        <div class="colab-name">${c.nome}</div>
-        <div class="colab-meta">${c.funcao} &nbsp;·&nbsp; ${c.centro_custo} &nbsp;·&nbsp; ${c.cpf}</div>
-      </div>
-      <div class="colab-actions">
-        <div class="progress-wrap">
-          <div style="display:flex;flex-direction:column;gap:3px;">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:#1d9e75;"></div></div>
-              <span style="font-size:11px;color:#1d9e75;min-width:52px;">✓ ${pct}% aprov.</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <div class="progress-bar"><div class="progress-fill" style="width:${pctEnv}%;background:#ef9f27;"></div></div>
-              <span style="font-size:11px;color:#854f0b;min-width:52px;">↑ ${pctEnv}% env.</span>
-            </div>
+
+  // Se há filtro ativo de CC ou busca de texto, mostra lista plana sem pastas
+  if (filtroCC || filtro) {
+    el.innerHTML = lista.map(c => renderColabItem(c)).join('');
+    return;
+  }
+
+  // Agrupar por Centro de Custo
+  const grupos = {};
+  lista.forEach(c => {
+    const cc = c.centro_custo || 'Sem Centro de Custo';
+    if (!grupos[cc]) grupos[cc] = [];
+    grupos[cc].push(c);
+  });
+
+  const ccsOrdenados = Object.keys(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
+
+  // Se há apenas um CC, abre automaticamente
+  if (ccsOrdenados.length === 1) pastasAbertas.add(ccsOrdenados[0]);
+
+  el.innerHTML = ccsOrdenados.map(cc => {
+    const membros = grupos[cc];
+    const totalMembros = membros.length;
+    // Média de aprovação da pasta
+    const mediaPct = Math.round(membros.reduce((s, c) => s + calcPct(c.id), 0) / totalMembros);
+    const completos = membros.filter(c => calcPct(c.id) === 100).length;
+    const aberta = pastasAbertas.has(cc);
+    const ccId = cc.replace(/[^a-zA-Z0-9_-]/g, '_');
+
+    return `<div class="cc-folder">
+      <div class="cc-folder-header" onclick="togglePasta('${cc.replace(/'/g, "\'")}')">
+        <span class="cc-folder-icon ${aberta ? 'open' : 'closed'}" id="pasta-icon-${ccId}">📂</span>
+        <div class="cc-folder-title">CC ${cc}</div>
+        <div class="cc-folder-meta">
+          <span class="cc-folder-badge">${totalMembros} colaborador${totalMembros !== 1 ? 'es' : ''}</span>
+          <span style="font-size:11px;opacity:0.8;">${completos}/${totalMembros} completos</span>
+          <div class="cc-folder-progress">
+            <div class="cc-folder-bar"><div class="cc-folder-bar-fill" style="width:${mediaPct}%"></div></div>
+            <span style="font-size:11px;">${mediaPct}%</span>
           </div>
-          ${badge}
         </div>
-        <button class="btn btn-icon btn-outline" title="Ver documentos" onclick="abrirDetalhe('${c.id}')">📋</button>
-        <button class="btn btn-icon btn-outline" title="Editar" onclick="editarColab('${c.id}')">✏️</button>
-        <button class="btn btn-icon btn-outline" title="Copiar link do colaborador" onclick="mostrarLink('${c.id}')">🔗</button>
-        <button class="btn btn-icon btn-outline" title="Excluir colaborador" onclick="excluirColaboradorLista('${c.id}','${c.nome}')" style="color:#e24b4a;border-color:#f7c1c1;">🗑️</button>
+      </div>
+      <div class="cc-folder-body ${aberta ? 'open' : ''}" id="pasta-body-${ccId}">
+        ${membros.map(c => renderColabItem(c)).join('')}
       </div>
     </div>`;
   }).join('');
