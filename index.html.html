@@ -1190,6 +1190,8 @@ async function carregarBibliotecas() {
       s.onload = () => {
         window.pdfjsLib.GlobalWorkerOptions.workerSrc =
           'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        // cMapUrl para suporte a PDFs com fontes CJK / especiais
+        window._pdfCMapUrl = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/';
         res();
       };
       s.onerror = rej;
@@ -1231,21 +1233,54 @@ async function blobParaBase64(blob) {
 }
 
 async function pdfParaImagens(url) {
-  try {
+  // Tentativa 1: fetch como blob e passar os bytes diretamente ao PDF.js
+  const tentarComBlob = async () => {
     const blob = await urlParaBlob(url);
     const buf = await blob.arrayBuffer();
-    const pdf = await window.pdfjsLib.getDocument({ data: buf }).promise;
+    return window.pdfjsLib.getDocument({
+      data: buf,
+      cMapUrl: window._pdfCMapUrl || 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+      cMapPacked: true,
+    }).promise;
+  };
+
+  // Tentativa 2: passar a URL diretamente ao PDF.js com withCredentials false
+  const tentarComUrl = async () => {
+    return window.pdfjsLib.getDocument({
+      url,
+      withCredentials: false,
+      cMapUrl: window._pdfCMapUrl || 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+      cMapPacked: true,
+    }).promise;
+  };
+
+  let pdfDoc = null;
+  try { pdfDoc = await tentarComBlob(); } catch (e1) {
+    console.warn('PDF blob falhou, tentando URL direta:', e1);
+    try { pdfDoc = await tentarComUrl(); } catch (e2) {
+      console.error('PDF URL também falhou:', e2);
+      return [];
+    }
+  }
+
+  try {
     const imgs = [];
-    for (let p = 1; p <= pdf.numPages; p++) {
-      const page = await pdf.getPage(p);
-      const vp = page.getViewport({ scale: 2.0 });
+    for (let p = 1; p <= pdfDoc.numPages; p++) {
+      const page = await pdfDoc.getPage(p);
+      // Escala 2.0 para boa resolução; reduz para 1.5 se a página for muito grande
+      const vpBase = page.getViewport({ scale: 1.0 });
+      const scale = vpBase.width > 2000 ? 1.5 : 2.0;
+      const vp = page.getViewport({ scale });
       const canvas = document.createElement('canvas');
       canvas.width = vp.width; canvas.height = vp.height;
-      await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      await page.render({ canvasContext: ctx, viewport: vp }).promise;
       imgs.push({ dataUrl: canvas.toDataURL('image/jpeg', 0.92), w: vp.width, h: vp.height });
     }
     return imgs;
-  } catch (e) { console.error('PDF.js erro:', e); return []; }
+  } catch (e) { console.error('PDF.js renderização:', e); return []; }
 }
 
 // Lê o valor EXIF de orientação direto dos bytes da imagem (sem biblioteca externa)
@@ -1359,19 +1394,34 @@ async function baixarDossie() {
       document.getElementById('loading-msg').textContent =
         `Convertendo ${i + 1}/${todosArquivos.length}: ${item.arquivo.nome}`;
 
-      const isPdf = /\.pdf$/i.test(item.arquivo.nome);
-      const isImg = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(item.arquivo.nome);
+      // Detecta tipo pelo nome do arquivo E pelo content-type real do blob
+      const isPdfNome = /\.pdf$/i.test(item.arquivo.nome);
+      const isImgNome = /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(item.arquivo.nome);
       let paginas = [];
 
       try {
-        if (isPdf) {
+        if (isPdfNome) {
+          // É PDF pelo nome — tenta renderizar
           paginas = await pdfParaImagens(item.arquivo.url);
-        } else if (isImg) {
-          paginas = await imagemParaDados(item.arquivo.url);
-        } else {
-          // Tenta PDF primeiro, depois imagem
-          paginas = await pdfParaImagens(item.arquivo.url);
+          // Se falhou, pode ser que o arquivo seja na verdade uma imagem com extensão errada
           if (!paginas.length) paginas = await imagemParaDados(item.arquivo.url);
+        } else if (isImgNome) {
+          paginas = await imagemParaDados(item.arquivo.url);
+          // Se falhou como imagem, tenta como PDF
+          if (!paginas.length) paginas = await pdfParaImagens(item.arquivo.url);
+        } else {
+          // Extensão desconhecida — detecta pelo content-type do blob
+          let blob;
+          try { blob = await urlParaBlob(item.arquivo.url); } catch(e) { blob = null; }
+          if (blob && blob.type && blob.type.includes('pdf')) {
+            paginas = await pdfParaImagens(item.arquivo.url);
+          } else if (blob && blob.type && blob.type.startsWith('image/')) {
+            paginas = await imagemParaDados(item.arquivo.url);
+          } else {
+            // Tenta PDF primeiro, depois imagem
+            paginas = await pdfParaImagens(item.arquivo.url);
+            if (!paginas.length) paginas = await imagemParaDados(item.arquivo.url);
+          }
         }
       } catch (e) {
         console.error('Erro ao processar', item.arquivo.nome, e);
