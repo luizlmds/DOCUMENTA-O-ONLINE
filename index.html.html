@@ -2746,7 +2746,7 @@ async function carregarVisaoRP(pastaRpId) {
   ids.forEach(id => { docsMap[id] = docsAll.filter(x => x.colaborador_id === id); });
   fluxoAll.forEach(row => {
     if (!fluxoCache[row.colaborador_id]) fluxoCache[row.colaborador_id] = {};
-    fluxoCache[row.colaborador_id][row.etapa] = row.status;
+    fluxoCache[row.colaborador_id][row.etapa] = { status: row.status, obs: row.obs || '' };
   });
 
   const vagas       = pasta.vagas || 0;
@@ -2819,7 +2819,7 @@ async function carregarVisaoRP(pastaRpId) {
       const etapasFl = (c.tipo_doc === 'MQP') ? FLUXO_ETAPAS_MQP : FLUXO_ETAPAS_RP;
       const tituloFluxo = (c.tipo_doc === 'MQP') ? 'FLUXO DE MOVIMENTAÇÃO (MQP)' : 'FLUXO DE CONTRATAÇÃO';
       const steps = etapasFl.map(e => {
-        const st = getFluxoState(c.id, e.id);
+        const st = (getFluxoState(c.id, e.id) || {}).status || 'none';
         const cor = st === 'done' ? '#1d9e75' : st === 'wip' ? '#f5d000' : '#d0d8d3';
         const borda = st === 'done' ? '#1a6b47' : st === 'wip' ? '#b8a000' : '#b0bab5';
         const icone = st === 'done' ? '✓' : st === 'wip' ? '…' : '';
@@ -3015,7 +3015,7 @@ async function gerarResumoPasta(rpKey, pastaRpId) {
       // Linhas de colaboradores
       for (let i = 0; i < colabs.length; i++) {
         const c   = colabs[i];
-        const pct = calcPct(c.id);
+        const pct = calcEnviado(c.id);
         const statusTxt = pct === 100 ? 'Completo' : pct > 0 ? 'Em andamento' : 'Pendente';
         const corStatus = pct === 100 ? [29, 158, 117] : pct > 0 ? [239, 159, 39] : [180, 180, 180];
         const rowH     = 8;
@@ -3072,11 +3072,11 @@ async function gerarResumoPasta(rpKey, pastaRpId) {
 
           FLUXO_ETAPAS.forEach((etapa, si) => {
             const cx2    = M + stepW * si + stepW / 2;
-            const st     = getFluxoState(c.id, etapa.id);
+            const st     = (getFluxoState(c.id, etapa.id) || {}).status || 'none';
 
             // Linha colorida até este nó se done/wip
             if (si > 0 && (st === 'done' || st === 'wip')) {
-              const prevSt = getFluxoState(c.id, FLUXO_ETAPAS[si - 1].id);
+              const prevSt = (getFluxoState(c.id, FLUXO_ETAPAS[si - 1].id) || {}).status || 'none';
               if (prevSt === 'done' || prevSt === 'wip') {
                 pdf.setDrawColor(29, 158, 117);
                 pdf.setLineWidth(0.8);
@@ -3163,7 +3163,7 @@ async function gerarResumoPasta(rpKey, pastaRpId) {
     // Estatísticas de docs de todos os colaboradores
     let totalCompletos = 0, totalAndamento = 0, totalPendente = 0;
     colabs.forEach(c => {
-      const pct = calcPct(c.id);
+      const pct = calcEnviado(c.id);
       if (pct === 100) totalCompletos++;
       else if (pct > 0) totalAndamento++;
       else totalPendente++;
