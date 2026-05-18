@@ -475,9 +475,11 @@ create table if not exists fluxo_pipeline (
   colaborador_id uuid references colaboradores(id) on delete cascade,
   etapa text not null,
   status text default 'none',
+  obs text,
   atualizado_em timestamptz default now(),
   unique(colaborador_id, etapa)
 );
+alter table fluxo_pipeline add column if not exists obs text;
 alter table fluxo_pipeline enable row level security;
 create policy if not exists "allow_all_fluxo" on fluxo_pipeline for all using (true);
         </div>
@@ -1508,8 +1510,7 @@ async function setFluxoStatus(colabId, etapaId, status, obs) {
       const descText = descNode ? descNode.textContent : '';
       const obsHtml = obs ? `<div class="fluxo-tooltip-obs">💬 ${obs.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : '';
       // Reconstruir tooltip preservando desc
-      const etapas = colabId ? ((fluxoCache[colabId] || {})['_tipo'] === 'MQP' ? FLUXO_ETAPAS_MQP : FLUXO_ETAPAS_RP) : FLUXO_ETAPAS_RP;
-      const etapa = [...FLUXO_ETAPAS_RP, ...FLUXO_ETAPAS_MQP].find(e => e.id === etapaId);
+      const etapa = [...FLUXO_ETAPAS_RP, ...FLUXO_ETAPAS_MQP, ...FLUXO_ETAPAS_TABOCA].find(e => e.id === etapaId);
       if (etapa) tooltip.innerHTML = etapa.desc + obsHtml;
     }
   }
