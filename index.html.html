@@ -102,6 +102,22 @@
   .cc-folder-body .colab-item { border-radius: 0; border-left: none; border-right: none; border-top: none; margin-bottom: 0; border-bottom: 1px solid var(--gray-border); }
   .cc-folder-body .colab-item:last-child { border-bottom: none; }
 
+  /* ===== SUB-PASTA RP/MQP ===== */
+  .rp-folder { margin: 0; border-top: 1px solid #d4e8de; }
+  .rp-folder:last-child { border-bottom: none; }
+  .rp-folder-header { background: #e8f5f0; color: var(--green-dark); padding: 10px 16px 10px 32px; display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; transition: background 0.15s; border-bottom: 1px solid #d4e8de; }
+  .rp-folder-header:hover { background: #d6ede5; }
+  .rp-folder-icon { font-size: 15px; transition: transform 0.2s; flex-shrink: 0; }
+  .rp-folder-icon.open { transform: rotate(0deg); }
+  .rp-folder-icon.closed { transform: rotate(-90deg) translateX(-2px); }
+  .rp-folder-title { flex: 1; font-weight: 700; font-size: 13px; }
+  .rp-folder-meta { font-size: 11px; color: var(--green-text); display: flex; align-items: center; gap: 8px; flex-shrink: 0; opacity: 0.85; }
+  .rp-folder-badge { background: rgba(29,158,117,0.15); border-radius: 12px; padding: 2px 8px; font-size: 11px; font-weight: 600; color: var(--green-text); }
+  .rp-folder-body { background: #f9f9f7; display: none; }
+  .rp-folder-body.open { display: block; }
+  .rp-folder-body .colab-item { border-radius: 0; border-left: none; border-right: none; border-top: none; margin-bottom: 0; border-bottom: 1px solid var(--gray-border); padding-left: 48px; }
+  .rp-folder-body .colab-item:last-child { border-bottom: none; }
+
   /* ===== BADGES ===== */
   .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
   .badge-green { background: var(--green-light); color: var(--green-text); }
@@ -136,6 +152,126 @@
   .approve-btn.fail:hover { background: var(--red-bg); }
   .na-btn { font-size: 10px; font-weight: 700; padding: 3px 6px; border-radius: 5px; border: 1px solid var(--gray-border); background: transparent; cursor: pointer; color: var(--text-muted); transition: all 0.15s; font-family: inherit; }
   .na-btn.active { background: var(--gray-bg); border-color: #bbb; }
+
+  /* ===== FLUXO PIPELINE CC 1238/1217 ===== */
+  .fluxo-wrap { width: 100%; margin-top: 10px; padding: 32px 0 4px; overflow-x: auto; overflow-y: visible; }
+  .fluxo-pipeline { display: flex; align-items: flex-start; position: relative; min-width: 520px; padding: 0 8px; overflow: visible; }
+  .fluxo-step { display: flex; flex-direction: column; align-items: center; position: relative; flex: 1; overflow: visible; }
+  .fluxo-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 17px;
+    left: 50%;
+    width: 100%;
+    height: 3px;
+    background: #c5d8cf;
+    z-index: 0;
+  }
+  .fluxo-node {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 3px solid #1a3a2a;
+    cursor: pointer;
+    position: relative; z-index: 1;
+    transition: transform 0.15s, box-shadow 0.15s;
+    flex-shrink: 0;
+  }
+  .fluxo-node:hover { transform: scale(1.12); box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
+  .fluxo-node.status-none { background: #d0d8d3; }
+  .fluxo-node.status-done { background: #1d9e75; }
+  .fluxo-node.status-wip  { background: #f5d000; animation: pulse-wip 1.1s ease-in-out infinite; }
+  @keyframes pulse-wip {
+    0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(245,208,0,0.5); }
+    50%      { opacity: 0.55; box-shadow: 0 0 0 6px rgba(245,208,0,0); }
+  }
+  .fluxo-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: #4a5e55; margin-top: 5px; text-align: center; max-width: 52px; line-height: 1.25; }
+
+  /* picker popup */
+  .fluxo-picker { position: absolute; top: 42px; left: 50%; transform: translateX(-50%); background: white; border: 1px solid var(--gray-border); border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.16); padding: 8px; display: flex; gap: 6px; z-index: 100; }
+  .fpo-none { background: #d0d8d3; }
+  .fpo-wip  { background: #f5d000; }
+  .fpo-done { background: #1d9e75; }
+  .fluxo-picker-opt { width: 26px; height: 26px; border-radius: 50%; border: 2.5px solid #1a3a2a; cursor: pointer; transition: transform 0.12s; }
+  .fluxo-picker-opt:hover { transform: scale(1.18); }
+  .fluxo-picker-obs-area { width: 100%; border: 1px solid var(--gray-border); border-radius: 6px; padding: 5px 7px; font-size: 11px; font-family: inherit; resize: none; color: var(--text-main); height: 56px; box-sizing: border-box; }
+  .fluxo-picker-obs-area:focus { outline: none; border-color: var(--green-mid); box-shadow: 0 0 0 2px rgba(29,158,117,0.15); }
+  .fluxo-picker-obs-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 4px; display: block; }
+  .fluxo-picker-save { width: 100%; margin-top: 6px; padding: 5px 0; background: var(--green-dark); color: white; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+  .fluxo-picker-save:hover { background: #244d38; }
+
+  /* ===== FLUXO TOOLTIP ===== */
+  .fluxo-tooltip {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a3a2a;
+    color: white;
+    font-size: 11px;
+    line-height: 1.45;
+    padding: 7px 10px;
+    border-radius: 8px;
+    white-space: normal;
+    width: 185px;
+    text-align: center;
+    pointer-events: none;
+    z-index: 200;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.22);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .fluxo-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #1a3a2a;
+  }
+  .fluxo-step:hover .fluxo-tooltip { opacity: 1; }
+  .fluxo-tooltip-obs {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    color: #9fe1cb;
+    font-size: 10px;
+    font-style: italic;
+    text-align: left;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .fluxo-obs-icon {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 14px;
+    height: 14px;
+    background: #f5d000;
+    border-radius: 50%;
+    border: 2px solid #1a3a2a;
+    font-size: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* picker popup */
+  .fluxo-picker {
+    position: absolute;
+    top: 42px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border: 1px solid var(--gray-border);
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.16);
+    padding: 8px;
+    z-index: 100;
+    min-width: 180px;
+  }
+  .fluxo-picker-colors { display: flex; gap: 6px; margin-bottom: 8px; justify-content: center; }
 
   /* ===== MODAL ===== */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
@@ -189,7 +325,26 @@
   .help-link { color: var(--green-mid); text-decoration: none; font-weight: 500; }
   .help-link:hover { text-decoration: underline; }
 
-  /* ===== LOGIN ===== */
+  /* ===== AMBIENTE SCREEN ===== */
+  .ambiente-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f0f4f8; padding: 24px; }
+  .ambiente-card { background: white; border-radius: 18px; padding: 40px 36px 32px; max-width: 420px; width: 100%; box-shadow: 0 6px 32px rgba(0,0,0,0.12); }
+  .ambiente-logo { display: flex; flex-direction: column; align-items: center; margin-bottom: 6px; }
+  .ambiente-logo-icon { width: 56px; height: 56px; background: var(--green-dark); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 800; margin-bottom: 10px; }
+  .ambiente-title { font-size: 20px; font-weight: 700; color: var(--text-main); letter-spacing: -0.3px; }
+  .ambiente-sub { font-size: 13px; color: var(--green-mid); font-weight: 600; margin-bottom: 28px; margin-top: 2px; }
+  .ambiente-field { margin-bottom: 16px; }
+  .ambiente-field label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; display: block; margin-bottom: 6px; }
+  .ambiente-readonly { background: #f5f5f2; border: 1px solid var(--gray-border); border-radius: 8px; padding: 9px 12px; font-size: 13px; color: var(--text-muted); font-family: inherit; }
+  .ambiente-opts { display: flex; gap: 10px; }
+  .ambiente-opt { flex: 1; border: 2px solid var(--gray-border); border-radius: 10px; padding: 14px 10px; cursor: pointer; text-align: center; transition: all 0.15s; background: white; font-family: inherit; }
+  .ambiente-opt:hover { border-color: var(--green-mid); background: var(--green-light); }
+  .ambiente-opt.selected { border-color: var(--green-dark); background: var(--green-light); }
+  .ambiente-opt-num { font-size: 22px; font-weight: 800; color: var(--green-dark); line-height: 1; }
+  .ambiente-opt-name { font-size: 13px; font-weight: 700; color: var(--text-main); margin-top: 4px; }
+  .ambiente-opt-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .ambiente-opt.selected .ambiente-opt-num,
+  .ambiente-opt.selected .ambiente-opt-name { color: var(--green-dark); }
+  .ambiente-divider { height: 1px; background: var(--gray-border); margin: 20px 0; }
   .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--gray-bg); padding: 24px; }
   .login-card { background: white; border-radius: 16px; padding: 36px; max-width: 400px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.1); text-align: center; }
   .login-logo { width: 60px; height: 60px; background: var(--green-dark); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-size: 26px; font-weight: 800; margin: 0 auto 16px; }
@@ -262,8 +417,30 @@ create table if not exists colaboradores (
   cpf text not null,
   funcao text not null,
   centro_custo text not null,
+  numero_rpmqp text,
+  tipo_doc text default 'RP',
+  mqp_subtipo text,
+  mqp_cargo_atual text,
+  mqp_cargo_final text,
+  mqp_salario_atual text,
+  mqp_salario_final text,
+  mqp_cc_atual text,
+  mqp_cc_destino text,
+  mqp_funcao_atual text,
+  mqp_funcao_final text,
   criado_em timestamptz default now()
 );
+
+-- Colunas MQP (para bancos existentes)
+alter table colaboradores add column if not exists mqp_subtipo text;
+alter table colaboradores add column if not exists mqp_cargo_atual text;
+alter table colaboradores add column if not exists mqp_cargo_final text;
+alter table colaboradores add column if not exists mqp_salario_atual text;
+alter table colaboradores add column if not exists mqp_salario_final text;
+alter table colaboradores add column if not exists mqp_cc_atual text;
+alter table colaboradores add column if not exists mqp_cc_destino text;
+alter table colaboradores add column if not exists mqp_funcao_atual text;
+alter table colaboradores add column if not exists mqp_funcao_final text;
 
 -- Tabela de documentos
 create table if not exists documentos (
@@ -291,6 +468,18 @@ alter table documentos enable row level security;
 
 create policy if not exists "allow_all_colab" on colaboradores for all using (true);
 create policy if not exists "allow_all_docs" on documentos for all using (true);
+
+-- Tabela de fluxo pipeline (CC 1238/1217)
+create table if not exists fluxo_pipeline (
+  id uuid primary key default gen_random_uuid(),
+  colaborador_id uuid references colaboradores(id) on delete cascade,
+  etapa text not null,
+  status text default 'none',
+  atualizado_em timestamptz default now(),
+  unique(colaborador_id, etapa)
+);
+alter table fluxo_pipeline enable row level security;
+create policy if not exists "allow_all_fluxo" on fluxo_pipeline for all using (true);
         </div>
         <button class="btn btn-outline btn-sm" onclick="copiarSQL()" style="margin-top:6px;">📋 Copiar SQL</button>
         <div style="margin-top:16px;display:flex;justify-content:space-between;">
@@ -318,6 +507,51 @@ create policy if not exists "allow_all_docs" on documentos for all using (true);
         </div>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- ===== AMBIENTE SCREEN ===== -->
+<div id="ambiente-screen" class="ambiente-screen" style="display:none;">
+  <div class="ambiente-card">
+    <div class="ambiente-logo">
+      <div class="ambiente-logo-icon">PA</div>
+      <div class="ambiente-title">Parente Andrade</div>
+      <div class="ambiente-sub">Boas-vindas! Selecione o ambiente.</div>
+    </div>
+
+    <div class="ambiente-field">
+      <label>Data base</label>
+      <div class="ambiente-readonly" id="amb-data"></div>
+    </div>
+
+    <div class="ambiente-field">
+      <label>Filial</label>
+      <div class="ambiente-readonly">01 — MATRIZ</div>
+    </div>
+
+    <div class="ambiente-field">
+      <label>Ambiente *</label>
+      <div class="ambiente-opts">
+        <button class="ambiente-opt" id="amb-opt-1" onclick="selecionarAmbiente(1)">
+          <div class="ambiente-opt-num">1</div>
+          <div class="ambiente-opt-name">RP</div>
+          <div class="ambiente-opt-desc">Requisição de Pessoas</div>
+        </button>
+        <button class="ambiente-opt" id="amb-opt-2" onclick="selecionarAmbiente(2)">
+          <div class="ambiente-opt-num">2</div>
+          <div class="ambiente-opt-name">MQP</div>
+          <div class="ambiente-opt-desc">Movimentação de Quadro de Pessoal</div>
+        </button>
+      </div>
+    </div>
+
+    <div id="amb-msg" style="margin-top:4px;"></div>
+    <div class="ambiente-divider"></div>
+
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-outline" style="flex:1;" onclick="voltarLogin()">← Voltar</button>
+      <button class="btn btn-primary" style="flex:2;" onclick="confirmarAmbiente()">Entrar →</button>
     </div>
   </div>
 </div>
@@ -374,6 +608,62 @@ create policy if not exists "allow_all_docs" on documentos for all using (true);
   </div>
 </div>
 
+<!-- ===== RP PUBLIC VIEW ===== -->
+<div id="rp-view-screen" style="display:none;">
+  <div class="collab-header" style="background:linear-gradient(135deg,#1a3a2a,#1d6b4a);">
+    <div style="max-width:780px;margin:0 auto;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div style="font-size:11px;opacity:0.6;margin-bottom:4px;letter-spacing:0.5px;">PARENTE ANDRADE — ACOMPANHAMENTO DE RP</div>
+        <h2 id="rpv-titulo" style="font-size:20px;font-weight:700;">Carregando...</h2>
+        <p id="rpv-meta" style="font-size:13px;opacity:0.7;margin-top:4px;"></p>
+      </div>
+      <div id="rpv-badge-vagas" style="background:rgba(0,0,0,0.25);border-radius:12px;padding:8px 16px;text-align:center;min-width:90px;">
+        <div id="rpv-vagas-num" style="font-size:22px;font-weight:800;line-height:1;">—</div>
+        <div style="font-size:10px;opacity:0.75;margin-top:2px;">vagas</div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:20px 24px;max-width:780px;margin:0 auto;">
+
+    <!-- Barra de progresso de vagas -->
+    <div id="rpv-progresso-wrap" style="background:white;border:1px solid #e0ddd5;border-radius:10px;padding:14px 18px;margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:13px;font-weight:700;color:#1a3a2a;">Preenchimento de vagas</span>
+        <span id="rpv-pct-txt" style="font-size:12px;font-weight:700;color:#1d9e75;">0%</span>
+      </div>
+      <div style="background:#e8e5de;border-radius:8px;height:10px;overflow:hidden;">
+        <div id="rpv-pct-bar" style="height:100%;border-radius:8px;background:#1d9e75;width:0%;transition:width 0.5s;"></div>
+      </div>
+      <div id="rpv-pct-sub" style="font-size:11px;color:#888;margin-top:6px;"></div>
+      <div id="rpv-previsao-wrap" style="display:none;margin-top:8px;padding:6px 10px;background:#f5f4f0;border-radius:7px;font-size:12px;display:flex;align-items:center;gap:6px;"></div>
+    </div>
+
+    <!-- Cards de estatísticas -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
+      <div style="background:white;border:1px solid #e0ddd5;border-radius:10px;padding:14px;text-align:center;">
+        <div id="rpv-stat-completos" style="font-size:24px;font-weight:800;color:#1d9e75;">0</div>
+        <div style="font-size:11px;color:#888;margin-top:2px;">Completos</div>
+      </div>
+      <div style="background:white;border:1px solid #e0ddd5;border-radius:10px;padding:14px;text-align:center;">
+        <div id="rpv-stat-andamento" style="font-size:24px;font-weight:800;color:#ef9f27;">0</div>
+        <div style="font-size:11px;color:#888;margin-top:2px;">Em andamento</div>
+      </div>
+      <div style="background:white;border:1px solid #e0ddd5;border-radius:10px;padding:14px;text-align:center;">
+        <div id="rpv-stat-pendente" style="font-size:24px;font-weight:800;color:#bbb;">0</div>
+        <div style="font-size:11px;color:#888;margin-top:2px;">Pendentes</div>
+      </div>
+    </div>
+
+    <!-- Lista de colaboradores -->
+    <div style="font-size:13px;font-weight:700;color:#1a3a2a;margin-bottom:8px;">Colaboradores</div>
+    <div id="rpv-lista"></div>
+
+    <div style="margin-top:20px;padding:12px;background:#f5f4f0;border-radius:8px;font-size:11px;color:#999;text-align:center;line-height:1.6;">
+      Esta é uma visualização de acompanhamento em tempo real.<br>Atualizado automaticamente. Somente leitura.
+    </div>
+  </div>
+</div>
+
 <!-- ===== RECRUITER APP ===== -->
 <div id="recruiter-app" style="display:none;" class="app">
   <div class="header">
@@ -381,11 +671,13 @@ create policy if not exists "allow_all_docs" on documentos for all using (true);
       <div style="font-size:22px;font-weight:800;color:#9fe1cb;letter-spacing:-1px;">PA</div>
       <div>
         <div class="header-logo-text">Parente Andrade</div>
-        <div class="header-logo-sub">Controle de Documentação</div>
+        <div class="header-logo-sub" id="header-amb-sub">Controle de Documentação</div>
       </div>
     </div>
     <div class="header-right">
+      <span id="amb-label" style="font-size:11px;background:rgba(255,255,255,0.15);padding:3px 10px;border-radius:12px;font-weight:600;"></span>
       <span id="user-email-label" style="font-size:12px;"></span>
+      <button class="btn btn-outline btn-sm" style="color:white;border-color:rgba(255,255,255,0.3);" onclick="trocarAmbiente()">⇄ Trocar</button>
       <button class="btn btn-outline btn-sm" style="color:white;border-color:rgba(255,255,255,0.3);" onclick="fazerLogout()">Sair</button>
     </div>
   </div>
@@ -402,6 +694,7 @@ create policy if not exists "allow_all_docs" on documentos for all using (true);
         <div id="lista-count" style="font-size:13px;color:var(--text-muted);"></div>
         <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
           <input type="text" id="search-input" placeholder="Buscar nome ou CPF..." style="width:180px;" oninput="filtrarLista()">
+          <input type="text" id="filtro-numero" placeholder="Nº RP / MQP..." style="width:140px;letter-spacing:1px;font-family:monospace;" oninput="this.value=this.value.replace(/\D/g,'');filtrarLista()">
           <select id="filtro-cc" style="width:140px;" onchange="filtrarLista()"><option value="">Todos os CCs</option></select>
           <select id="filtro-funcao" style="width:150px;" onchange="filtrarLista()"><option value="">Todas as funções</option></select>
           <button class="btn btn-outline btn-sm" onclick="limparFiltros()">✕ Limpar</button>
@@ -416,24 +709,153 @@ create policy if not exists "allow_all_docs" on documentos for all using (true);
     <div id="tab-content-cadastro" style="display:none;">
       <div class="card">
         <div class="card-title" id="form-titulo">Pré-Cadastro de Colaborador</div>
-        <div class="form-grid">
-          <div class="form-group full">
-            <label>Nome completo *</label>
-            <input type="text" id="f-nome" placeholder="Nome completo do colaborador">
+
+        <!-- Toggle: apenas pasta de RP -->
+        <div id="flag-pasta-rp-wrap" style="margin-bottom:18px;padding:12px 14px;background:#f0f7f4;border:1px solid #c5ddd6;border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;" onclick="togglePastaRpMode()">
+          <div>
+            <div id="flag-pasta-rp-label" style="font-size:13px;font-weight:600;color:var(--green-dark);">📁 Criar apenas pasta de RP</div>
+            <div id="flag-pasta-rp-sublabel" style="font-size:11px;color:var(--text-muted);margin-top:2px;">Marque se este cadastro é somente a abertura de uma RP, sem colaborador vinculado ainda.</div>
           </div>
-          <div class="form-group">
-            <label>CPF *</label>
-            <input type="text" id="f-cpf" placeholder="000.000.000-00" maxlength="14">
-          </div>
-          <div class="form-group">
-            <label>Função / Cargo *</label>
-            <input type="text" id="f-funcao" placeholder="Ex: Técnico de Segurança">
-          </div>
-          <div class="form-group">
-            <label>Centro de Custo *</label>
-            <input type="text" id="f-cc" placeholder="Ex: CC-001">
+          <div id="flag-pasta-rp-btn" style="width:42px;height:24px;border-radius:12px;background:#ccc;position:relative;transition:background 0.2s;flex-shrink:0;">
+            <div id="flag-pasta-rp-thumb" style="width:20px;height:20px;border-radius:50%;background:white;position:absolute;top:2px;left:2px;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
           </div>
         </div>
+
+        <!-- Campos: Apenas pasta RP -->
+        <div id="form-pasta-rp" style="display:none;">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Número da RP *</label>
+              <input type="text" id="f-pasta-numero" placeholder="Ex: 12345678" style="letter-spacing:2px;font-family:monospace;font-size:15px;" oninput="this.value=this.value.replace(/\D/g,'')">
+            </div>
+            <div class="form-group">
+              <label>Centro de Custo *</label>
+              <input type="text" id="f-pasta-cc" placeholder="Ex: 1238">
+            </div>
+            <div class="form-group">
+              <label>Qtd. de vagas *</label>
+              <input type="number" id="f-pasta-vagas" placeholder="Ex: 5" min="1">
+            </div>
+            <div class="form-group">
+              <label>Data de criação *</label>
+              <input type="date" id="f-pasta-data">
+            </div>
+            <div class="form-group">
+              <label>Previsão de conclusão</label>
+              <input type="date" id="f-pasta-previsao">
+            </div>
+          </div>
+        </div>
+
+        <!-- Campos: Colaborador normal -->
+        <div id="form-colaborador">
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>Nome completo *</label>
+              <input type="text" id="f-nome" placeholder="Nome completo do colaborador">
+            </div>
+            <div class="form-group">
+              <label>CPF *</label>
+              <input type="text" id="f-cpf" placeholder="000.000.000-00" maxlength="14">
+            </div>
+            <div class="form-group">
+              <label>Função / Cargo *</label>
+              <input type="text" id="f-funcao" placeholder="Ex: Técnico de Segurança">
+            </div>
+            <div class="form-group">
+              <label>Centro de Custo *</label>
+              <input type="text" id="f-cc" placeholder="Ex: CC-001">
+            </div>
+            <div class="form-group">
+              <label>Número RP / MQP</label>
+              <input type="text" id="f-rpmqp" placeholder="Ex: 12345678" style="letter-spacing:2px;font-family:monospace;font-size:15px;" oninput="this.value=this.value.replace(/\D/g,'')">
+            </div>
+            <div class="form-group" style="justify-content:flex-end;">
+              <label>Tipo de documento</label>
+              <div style="display:flex;gap:0;border:1px solid var(--gray-border);border-radius:8px;overflow:hidden;height:38px;">
+                <button type="button" id="flag-rp" onclick="selecionarTipoDoc('RP')"
+                  style="flex:1;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all 0.15s;background:var(--green-dark);color:white;">
+                  RP
+                </button>
+                <button type="button" id="flag-mqp" onclick="selecionarTipoDoc('MQP')"
+                  style="flex:1;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all 0.15s;background:white;color:var(--text-muted);border-left:1px solid var(--gray-border);">
+                  MQP
+                </button>
+              </div>
+              <div id="tipo-doc-hint" style="font-size:10px;color:var(--text-muted);margin-top:3px;">Definido pelo ambiente selecionado</div>
+            </div>
+          </div>
+
+          <!-- Tipo de MQP (só aparece quando tipo_doc = MQP) -->
+          <div id="mqp-subtipo-wrap" style="display:none;margin-top:16px;padding:14px;background:#f0f7f4;border:1px solid #c5ddd6;border-radius:8px;">
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:10px;">Tipo de MQP</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+              <button type="button" id="mqp-btn-promocao" onclick="selecionarSubtipoMQP('PROMOCAO')"
+                style="flex:1;min-width:120px;padding:10px 12px;border-radius:8px;border:2px solid var(--gray-border);background:white;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all 0.15s;color:var(--text-muted);">
+                🏅 Promoção
+              </button>
+              <button type="button" id="mqp-btn-transferencia" onclick="selecionarSubtipoMQP('TRANSFERENCIA')"
+                style="flex:1;min-width:120px;padding:10px 12px;border-radius:8px;border:2px solid var(--gray-border);background:white;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all 0.15s;color:var(--text-muted);">
+                🔄 Transferência
+              </button>
+              <button type="button" id="mqp-btn-funcional" onclick="selecionarSubtipoMQP('FUNCIONAL')"
+                style="flex:1;min-width:120px;padding:10px 12px;border-radius:8px;border:2px solid var(--gray-border);background:white;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all 0.15s;color:var(--text-muted);">
+                📋 Funcional
+              </button>
+            </div>
+
+            <!-- Campos: Promoção -->
+            <div id="mqp-campos-promocao" style="display:none;">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Cargo Atual *</label>
+                  <input type="text" id="f-mqp-cargo-atual" placeholder="Ex: Técnico Jr">
+                </div>
+                <div class="form-group">
+                  <label>Cargo Final *</label>
+                  <input type="text" id="f-mqp-cargo-final" placeholder="Ex: Técnico Sr">
+                </div>
+                <div class="form-group">
+                  <label>Salário Atual *</label>
+                  <input type="text" id="f-mqp-salario-atual" placeholder="Ex: R$ 3.500,00" oninput="mascaraMoeda(this)">
+                </div>
+                <div class="form-group">
+                  <label>Salário Final *</label>
+                  <input type="text" id="f-mqp-salario-final" placeholder="Ex: R$ 4.200,00" oninput="mascaraMoeda(this)">
+                </div>
+              </div>
+            </div>
+
+            <!-- Campos: Transferência -->
+            <div id="mqp-campos-transferencia" style="display:none;">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>CC Atual *</label>
+                  <input type="text" id="f-mqp-cc-atual" placeholder="Ex: 1238">
+                </div>
+                <div class="form-group">
+                  <label>CC Destino *</label>
+                  <input type="text" id="f-mqp-cc-destino" placeholder="Ex: 1217">
+                </div>
+              </div>
+            </div>
+
+            <!-- Campos: Funcional -->
+            <div id="mqp-campos-funcional" style="display:none;">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Função Atual *</label>
+                  <input type="text" id="f-mqp-funcao-atual" placeholder="Ex: Auxiliar Administrativo">
+                </div>
+                <div class="form-group">
+                  <label>Função Final *</label>
+                  <input type="text" id="f-mqp-funcao-final" placeholder="Ex: Assistente Administrativo">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div id="form-msg" style="margin-top:10px;"></div>
         <div style="display:flex;gap:8px;margin-top:16px;">
           <button class="btn btn-primary" onclick="salvarColaborador()" id="btn-salvar">Salvar Cadastro</button>
@@ -461,7 +883,7 @@ create policy if not exists "allow_all_docs" on documentos for all using (true);
         </div>
       </div>
     </div>
-    <div class="card" style="margin-bottom:16px;">
+    <div class="card" id="dv-link-card" style="margin-bottom:16px;">
       <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Link do Colaborador</div>
       <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Compartilhe este link com o colaborador para que ele envie os documentos:</div>
       <div class="link-box">
@@ -474,16 +896,24 @@ create policy if not exists "allow_all_docs" on documentos for all using (true);
         <button class="btn btn-sm btn-danger" onclick="excluirColaborador()">🗑️ Excluir</button>
       </div>
     </div>
-    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;background:white;border:1px solid #e0ddd5;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;">
+    <!-- Botões de ação para ambiente MQP (sem link e sem checklist) -->
+    <div id="dv-mqp-actions" style="display:none;margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-sm btn-outline" onclick="editarColaboradorAtual()">✏️ Editar dados</button>
+      <button class="btn btn-sm btn-danger" onclick="excluirColaborador()">🗑️ Excluir</button>
+    </div>
+    <!-- Card de detalhes do subtipo MQP -->
+    <div id="dv-mqp-detalhes-card" class="card" style="display:none;margin-bottom:16px;border-left:4px solid var(--green-mid);"></div>
+    <div id="dv-legenda-card" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;background:white;border:1px solid #e0ddd5;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;">
       <span style="font-weight:600;color:#6b6b68;margin-right:4px;">Legenda:</span>
       <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:#ccc;display:inline-block;flex-shrink:0;"></span> Nenhum documento</span>
       <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:#ef9f27;display:inline-block;flex-shrink:0;"></span> Enviado / Em análise</span>
       <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:#1d9e75;display:inline-block;flex-shrink:0;"></span> Aprovado</span>
       <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:50%;background:#e24b4a;display:inline-block;flex-shrink:0;"></span> Reprovado</span>
-    </div>    <div class="section-label">Documentos Pessoais</div>
-    <div id="dv-docs"></div>
-    <div class="section-label" style="margin-top:24px;">Dependentes</div>
-    <div id="dv-deps"></div>
+    </div>
+    <div id="dv-docs-section"><div class="section-label">Documentos Pessoais</div>
+    <div id="dv-docs"></div></div>
+    <div id="dv-deps-section"><div class="section-label" style="margin-top:24px;">Dependentes</div>
+    <div id="dv-deps"></div></div>
   </div>
 </div>
 
@@ -553,6 +983,13 @@ async function init() {
     currentCollabUrlId = hash.replace('#colab/','');
     isCollabView = true;
   }
+  // Detectar se é link de acompanhamento de RP
+  let isRpView = false;
+  let rpViewId  = null;
+  if (hash.startsWith('#rp/')) {
+    rpViewId  = hash.replace('#rp/','');
+    isRpView  = true;
+  }
 
   const initUrl = url.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
   sb = supabase.createClient(initUrl, key, {auth:{persistSession:true,autoRefreshToken:true}});
@@ -571,11 +1008,16 @@ async function init() {
     return;
   }
 
+  if (isRpView) {
+    await carregarVisaoRP(rpViewId);
+    return;
+  }
+
   // Checar sessão
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
     document.getElementById('user-email-label').textContent = session.user.email;
-    await carregarApp();
+    showAmbiente();
   } else {
     showLogin();
   }
@@ -641,7 +1083,7 @@ async function fazerLogin() {
   if (error) { msg.innerHTML=`<div class="alert alert-error">${error.message}</div>`; return; }
   document.getElementById('user-email-label').textContent = data.user.email;
   document.getElementById('login-screen').style.display = 'none';
-  await carregarApp();
+  showAmbiente();
 }
 async function criarConta() {
   const email = document.getElementById('login-email').value.trim();
@@ -661,6 +1103,72 @@ async function fazerLogout() {
 }
 
 // =============================================
+// AMBIENTE SCREEN
+// =============================================
+let ambienteSelecionado = null;
+
+function showAmbiente() {
+  // Preencher data atual
+  const hoje = new Date();
+  const dia = String(hoje.getDate()).padStart(2,'0');
+  const mes = String(hoje.getMonth()+1).padStart(2,'0');
+  const ano = hoje.getFullYear();
+  document.getElementById('amb-data').textContent = `${dia}/${mes}/${ano}`;
+  ambienteSelecionado = null;
+  document.getElementById('amb-opt-1').classList.remove('selected');
+  document.getElementById('amb-opt-2').classList.remove('selected');
+  document.getElementById('amb-msg').innerHTML = '';
+  document.getElementById('ambiente-screen').style.display = 'flex';
+}
+
+function selecionarAmbiente(n) {
+  ambienteSelecionado = n;
+  document.getElementById('amb-opt-1').classList.toggle('selected', n===1);
+  document.getElementById('amb-opt-2').classList.toggle('selected', n===2);
+  document.getElementById('amb-msg').innerHTML = '';
+}
+
+async function confirmarAmbiente() {
+  if (!ambienteSelecionado) {
+    document.getElementById('amb-msg').innerHTML = '<div class="alert alert-error">Selecione um ambiente para continuar.</div>';
+    return;
+  }
+  document.getElementById('ambiente-screen').style.display = 'none';
+
+  // Atualizar labels no header
+  const labelEl = document.getElementById('amb-label');
+  const subEl   = document.getElementById('header-amb-sub');
+  const tipoNome = ambienteSelecionado === 1 ? 'RP — Requisição de Pessoas' : 'MQP — Movimentação de Quadro de Pessoal';
+  if (labelEl) labelEl.textContent = `Ambiente ${ambienteSelecionado} — ${ambienteSelecionado === 1 ? 'RP' : 'MQP'}`;
+  if (subEl)   subEl.textContent   = tipoNome;
+
+  // Atualizar textos do toggle de pasta conforme ambiente
+  const tipo = ambienteSelecionado === 2 ? 'MQP' : 'RP';
+  const pastaLabel = document.getElementById('flag-pasta-rp-label');
+  const pastaSublabel = document.getElementById('flag-pasta-rp-sublabel');
+  if (pastaLabel) pastaLabel.textContent = `📁 Criar apenas pasta de ${tipo}`;
+  if (pastaSublabel) pastaSublabel.textContent = `Marque se este cadastro é somente a abertura de uma ${tipo}, sem colaborador vinculado ainda.`;
+
+  await carregarApp();
+}
+
+function trocarAmbiente() {
+  document.getElementById('recruiter-app').style.display = 'none';
+  // Voltar para lista ao trocar
+  const vLista = document.getElementById('view-lista');
+  const vDetail = document.getElementById('view-detail');
+  if (vLista)  vLista.style.display  = '';
+  if (vDetail) vDetail.style.display = 'none';
+  mudarTab('lista');
+  showAmbiente();
+}
+
+function voltarLogin() {
+  document.getElementById('ambiente-screen').style.display = 'none';
+  showLogin();
+}
+
+// =============================================
 // CARREGAR APP
 // =============================================
 async function carregarApp() {
@@ -669,7 +1177,8 @@ async function carregarApp() {
 }
 async function carregarColaboradores() {
   showLoading('Carregando colaboradores...');
-  const { data, error } = await sb.from('colaboradores').select('*').order('nome', {ascending:true});
+  const tipoFiltro = ambienteSelecionado === 2 ? 'MQP' : 'RP';
+  const { data, error } = await sb.from('colaboradores').select('*').eq('tipo_doc', tipoFiltro).order('nome', {ascending:true});
   if (error) { hideLoading(); alert('Erro: '+error.message); return; }
   colaboradores = data || [];
   docsMap = {};
@@ -680,6 +1189,12 @@ async function carregarColaboradores() {
       if(!docsMap[d.colaborador_id]) docsMap[d.colaborador_id]=[];
       docsMap[d.colaborador_id].push(d);
     });
+    // Carregar fluxos só para CC 1238/1217
+    const idsFluxo = colaboradores.filter(c => {
+      const ccn = (c.centro_custo||'').replace(/\D/g,'');
+      return ccn==='1238'||ccn==='1217'||ccn==='1235'||ccn==='1225';
+    }).map(c=>c.id);
+    if(idsFluxo.length) await carregarFluxos(idsFluxo);
   }
   hideLoading();
   renderLista();
@@ -691,6 +1206,7 @@ async function carregarColaboradores() {
 function getInitials(n) { return (n||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
 function limparFiltros() {
   document.getElementById('search-input').value='';
+  document.getElementById('filtro-numero').value='';
   document.getElementById('filtro-cc').value='';
   document.getElementById('filtro-funcao').value='';
   renderLista();
@@ -699,7 +1215,8 @@ function filtrarLista() {
   renderLista(
     document.getElementById('search-input').value.toLowerCase(),
     document.getElementById('filtro-cc').value,
-    document.getElementById('filtro-funcao').value
+    document.getElementById('filtro-funcao').value,
+    document.getElementById('filtro-numero').value.trim()
   );
 }
 
@@ -716,12 +1233,12 @@ function popularFiltros() {
 // Estado das pastas abertas/fechadas
 const pastasAbertas = new Set();
 
-function togglePasta(cc) {
-  if (pastasAbertas.has(cc)) { pastasAbertas.delete(cc); } else { pastasAbertas.add(cc); }
-  const ccId = cc.replace(/[^a-zA-Z0-9_-]/g, '_');
+function togglePasta(ccId, cc) {
+  const key = cc || ccId;
+  if (pastasAbertas.has(key)) { pastasAbertas.delete(key); } else { pastasAbertas.add(key); }
   const body = document.getElementById('pasta-body-' + ccId);
   const icon = document.getElementById('pasta-icon-' + ccId);
-  const aberta = pastasAbertas.has(cc);
+  const aberta = pastasAbertas.has(key);
   if (body) { body.classList.toggle('open', aberta); }
   if (icon) {
     icon.textContent = aberta ? '📂' : '📁';
@@ -731,46 +1248,323 @@ function togglePasta(cc) {
 }
 
 function renderColabItem(c) {
+  const isMQP = (c.tipo_doc || 'RP') === 'MQP';
+
+  // ── Pasta de RP (sem colaborador) ──
+  if (c.tipo_registro === 'pasta_rp') {
+    const dataFmt = c.data_criacao ? new Date(c.data_criacao + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
+    return `<div class="colab-item" style="flex-wrap:wrap;background:#f6fdf9;">
+      <div style="display:flex;align-items:center;gap:14px;width:100%;">
+        <div class="avatar" style="background:#d6ede5;color:var(--green-dark);font-size:18px;">📁</div>
+        <div class="colab-info">
+          <div class="colab-name">${c.tipo_doc || 'RP'} ${c.numero_rpmqp}</div>
+          <div class="colab-meta">
+            <span style="background:#e8f5f0;color:var(--green-text);border-radius:10px;padding:1px 8px;font-size:11px;font-weight:600;">📋 Pasta de ${c.tipo_doc || 'RP'}</span>
+            &nbsp;·&nbsp; ${c.vagas || '—'} vaga${(c.vagas||0)>1?'s':''}
+            &nbsp;·&nbsp; Criada em ${dataFmt}
+          </div>
+        </div>
+        <div class="colab-actions">
+          <button class="btn btn-icon btn-outline" title="Editar pasta" onclick="editarColab('${c.id}')">✏️</button>
+          <button class="btn btn-icon btn-outline" title="Excluir pasta" onclick="excluirColaboradorLista('${c.id}','${c.tipo_doc || 'RP'} ${c.numero_rpmqp}')" style="color:#e24b4a;border-color:#f7c1c1;">🗑️</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // ── Colaborador normal ──
   const pct = calcPct(c.id);
   const badge = pct===100 ? '<span class="badge badge-green">Completo</span>' : pct>0 ? '<span class="badge badge-amber">Em andamento</span>' : '<span class="badge badge-gray">Pendente</span>';
   const pctEnv = calcEnviado(c.id);
-  return `<div class="colab-item">
-    <div class="avatar">${getInitials(c.nome)}</div>
-    <div class="colab-info">
-      <div class="colab-name">${c.nome}</div>
-      <div class="colab-meta">${c.funcao} &nbsp;·&nbsp; ${c.cpf}</div>
-    </div>
-    <div class="colab-actions">
-      <div class="progress-wrap">
-        <div style="display:flex;flex-direction:column;gap:3px;">
-          <div style="display:flex;align-items:center;gap:6px;">
-            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:#1d9e75;"></div></div>
-            <span style="font-size:11px;color:#1d9e75;min-width:52px;">✓ ${pct}% aprov.</span>
+  const ccNum = (c.centro_custo||'').replace(/\D/g,'');
+  const showFluxo = ccNum === '1238' || ccNum === '1217' || ccNum === '1235' || ccNum === '1225';
+  const fluxoHtml = showFluxo ? renderFluxoInline(c) : '';
+  const progressHtml = isMQP ? '' : `<div class="progress-wrap">
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:#1d9e75;"></div></div>
+              <span style="font-size:11px;color:#1d9e75;min-width:52px;">✓ ${pct}% aprov.</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div class="progress-bar"><div class="progress-fill" style="width:${pctEnv}%;background:#ef9f27;"></div></div>
+              <span style="font-size:11px;color:#854f0b;min-width:52px;">↑ ${pctEnv}% env.</span>
+            </div>
           </div>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <div class="progress-bar"><div class="progress-fill" style="width:${pctEnv}%;background:#ef9f27;"></div></div>
-            <span style="font-size:11px;color:#854f0b;min-width:52px;">↑ ${pctEnv}% env.</span>
-          </div>
+          ${badge}
+        </div>`;
+  const linkBtnHtml = isMQP ? '' : `<button class="btn btn-icon btn-outline" title="Copiar link do colaborador" onclick="mostrarLink('${c.id}')">🔗</button>`;
+  return `<div class="colab-item" style="flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:14px;width:100%;">
+      <div class="avatar">${getInitials(c.nome)}</div>
+      <div class="colab-info">
+        <div class="colab-name" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          ${c.nome}
+          ${(()=>{
+            if ((c.tipo_doc||'RP') !== 'MQP' || !c.mqp_subtipo) return '';
+            const subtipoLabels = { PROMOCAO:'Troca de Função', TRANSFERENCIA:'Transferência', FUNCIONAL:'Funcional' };
+            const subtipoLabel = subtipoLabels[c.mqp_subtipo] || c.mqp_subtipo;
+            let extraInfo = '';
+            if (c.mqp_subtipo === 'PROMOCAO' && c.mqp_cargo_final) extraInfo = ' → ' + c.mqp_cargo_final;
+            else if (c.mqp_subtipo === 'FUNCIONAL' && c.mqp_funcao_final) extraInfo = ' → ' + c.mqp_funcao_final;
+            else if (c.mqp_subtipo === 'TRANSFERENCIA' && c.mqp_cc_destino) extraInfo = ' → ' + c.mqp_cc_destino;
+            return '<span style="font-size:11px;font-weight:600;background:var(--green-light);color:var(--green-text);border-radius:10px;padding:2px 8px;white-space:nowrap;">' + subtipoLabel + extraInfo + '</span>';
+          })()}
         </div>
-        ${badge}
+        <div class="colab-meta">${c.funcao} &nbsp;·&nbsp; ${c.cpf}${c.numero_rpmqp ? ' &nbsp;·&nbsp; <span style="font-weight:600;color:var(--green-text);">' + (c.tipo_doc||'RP') + ' ' + c.numero_rpmqp + '</span>' : ''}</div>
       </div>
-      <button class="btn btn-icon btn-outline" title="Ver documentos" onclick="abrirDetalhe('${c.id}')">📋</button>
-      <button class="btn btn-icon btn-outline" title="Editar" onclick="editarColab('${c.id}')">✏️</button>
-      <button class="btn btn-icon btn-outline" title="Copiar link do colaborador" onclick="mostrarLink('${c.id}')">🔗</button>
-      <button class="btn btn-icon btn-outline" title="Excluir colaborador" onclick="excluirColaboradorLista('${c.id}','${c.nome}')" style="color:#e24b4a;border-color:#f7c1c1;">🗑️</button>
+      <div class="colab-actions">
+        ${progressHtml}
+        <button class="btn btn-icon btn-outline" title="Ver documentos" onclick="abrirDetalheComSenha('${c.id}')">📋</button>
+        <button class="btn btn-icon btn-outline" title="Editar" onclick="editarColab('${c.id}')">✏️</button>
+        ${linkBtnHtml}
+        <button class="btn btn-icon btn-outline" title="Excluir colaborador" onclick="excluirColaboradorLista('${c.id}','${c.nome}')" style="color:#e24b4a;border-color:#f7c1c1;">🗑️</button>
+      </div>
     </div>
+    ${fluxoHtml}
   </div>`;
 }
 
-function renderLista(filtro='', filtroCC='', filtroFuncao='') {
+// =============================================
+// FLUXO PIPELINE (CC 1238 / 1217)
+// =============================================
+// Etapas do fluxo para RP (Requisição de Pessoas)
+const FLUXO_ETAPAS_RP = [
+  { id:'recrutamento',   label:'RECRUTAMENTO',   desc:'Entrevista e entrega de documentação' },
+  { id:'exame_aso',      label:'EXAME (ASO)',     desc:'Candidatos encaminhados para realização de ASO (Atestado de Saúde Ocupacional)' },
+  { id:'ass_contrato',   label:'ASS. CONTRATO',  desc:'Colaborador convocado para assinatura do contrato' },
+  { id:'treinamento',    label:'TREINAMENTOS',    desc:'Cadastrar os colaboradores no eSST em todos os treinamentos normativos, após alinhar com SESMT a realização do treinamento' },
+  { id:'prestserv',      label:'PRESTSERV',       desc:'Sendo cadastrado no Prestserv — aguardando fiscalização aprovar para gerar SISPAT e possibilitar a emissão da RT' },
+  { id:'integ_br',       label:'INTEG. BR',       desc:'Integração BR — EDIMAN' },
+  { id:'integ_pa',       label:'INTEG. PA',       desc:'Colaborador realizando integração PA' },
+  { id:'apto',           label:'APTO',            desc:'Processo concluído — colaborador apto' },
+];
+
+// Etapas do fluxo para CC 1235 / 1225 (Rainbow + Integ. Taboca)
+const FLUXO_ETAPAS_TABOCA = [
+  { id:'recrutamento',   label:'RECRUTAMENTO',   desc:'Entrevista e entrega de documentação' },
+  { id:'exame_aso',      label:'EXAME (ASO)',     desc:'Candidatos encaminhados para realização de ASO (Atestado de Saúde Ocupacional)' },
+  { id:'ass_contrato',   label:'ASS. CONTRATO',  desc:'Colaborador convocado para assinatura do contrato' },
+  { id:'treinamento',    label:'TREINAMENTOS',    desc:'Cadastrar os colaboradores no eSST em todos os treinamentos normativos, após alinhar com SESMT a realização do treinamento' },
+  { id:'rainbow',        label:'RAINBOW',         desc:'Sendo cadastrado no Rainbow — aguardando aprovação para prosseguir com o processo' },
+  { id:'integ_taboca',   label:'INTEG. TABOCA',   desc:'Integração Taboca — colaborador realizando integração' },
+  { id:'integ_pa',       label:'INTEG. PA',       desc:'Colaborador realizando integração PA' },
+  { id:'apto',           label:'APTO',            desc:'Processo concluído — colaborador apto' },
+];
+const CCS_TABOCA = ['1235', '1225'];
+
+// Etapas do fluxo para MQP (Movimentação de Quadro de Pessoal)
+const FLUXO_ETAPAS_MQP = [
+  { id:'mqp_exame_aso',         label:'EXAME (ASO)',                  desc:'Realização de ASO (Atestado de Saúde Ocupacional) para a movimentação' },
+  { id:'mqp_alt_protheus',      label:'ALTERAÇÃO PROTHEUS',           desc:'Alteração cadastral realizada no sistema Protheus' },
+  { id:'mqp_atualizacao_ctps',  label:'ATUALIZAÇÃO CTPS',             desc:'Atualização da Carteira de Trabalho e Previdência Social' },
+  { id:'mqp_entrega_docs_site', label:'ENTREGA DE DOC. SITE',         desc:'Entrega da documentação no site conforme exigência' },
+];
+
+// Alias para compatibilidade com código legado
+const FLUXO_ETAPAS = FLUXO_ETAPAS_RP;
+
+// cache local: { [colabId]: { [etapaId]: 'none'|'wip'|'done' } }
+const fluxoCache = {};
+
+function getFluxoState(colabId, etapaId) {
+  return (fluxoCache[colabId] && fluxoCache[colabId][etapaId]) || { status: 'none', obs: '' };
+}
+
+function getFluxoStatus(colabId, etapaId) {
+  const s = getFluxoState(colabId, etapaId);
+  return typeof s === 'string' ? s : (s.status || 'none');
+}
+
+function getFluxoObs(colabId, etapaId) {
+  const s = getFluxoState(colabId, etapaId);
+  return typeof s === 'string' ? '' : (s.obs || '');
+}
+
+function renderFluxoInline(c) {
+  const ccNum = (c.centro_custo || '').replace(/[^0-9]/g, ''); const etapas = (c.tipo_doc === 'MQP') ? FLUXO_ETAPAS_MQP : CCS_TABOCA.includes(ccNum) ? FLUXO_ETAPAS_TABOCA : FLUXO_ETAPAS_RP;
+  const steps = etapas.map((e, i) => {
+    const st = getFluxoStatus(c.id, e.id);
+    const obs = getFluxoObs(c.id, e.id);
+    const obsHtml = obs ? `<div class="fluxo-tooltip-obs">💬 ${obs.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : '';
+    const obsIconHtml = obs ? `<div class="fluxo-obs-icon">💬</div>` : '';
+    return `<div class="fluxo-step" id="fstep-${c.id}-${e.id}">
+      <div class="fluxo-tooltip">${e.desc}${obsHtml}</div>
+      <div class="fluxo-node status-${st}" onclick="abrirFluxoPicker('${c.id}','${e.id}',this)" style="position:relative;">${obsIconHtml}</div>
+      <div class="fluxo-label">${e.label}</div>
+    </div>`;
+  }).join('');
+  return `<div class="fluxo-wrap"><div class="fluxo-pipeline">${steps}</div></div>`;
+}
+
+let pickerAberto = null;
+function fecharPickerAberto() {
+  if (pickerAberto) { pickerAberto.remove(); pickerAberto = null; }
+}
+
+function abrirFluxoPicker(colabId, etapaId, nodeEl) {
+  // Fechar qualquer picker aberto
+  if (pickerAberto) {
+    fecharPickerAberto();
+    return;
+  }
+  const obsAtual = getFluxoObs(colabId, etapaId);
+  const picker = document.createElement('div');
+  picker.className = 'fluxo-picker';
+  picker.innerHTML = `
+    <div class="fluxo-picker-colors">
+      <div class="fluxo-picker-opt fpo-none" title="Não iniciado" onclick="selecionarCorPicker('${colabId}','${etapaId}','none',this)"></div>
+      <div class="fluxo-picker-opt fpo-wip"  title="Em andamento" onclick="selecionarCorPicker('${colabId}','${etapaId}','wip',this)"></div>
+      <div class="fluxo-picker-opt fpo-done" title="Concluído"    onclick="selecionarCorPicker('${colabId}','${etapaId}','done',this)"></div>
+    </div>
+    <div>
+      <span class="fluxo-picker-obs-label">📝 Observação</span>
+      <textarea class="fluxo-picker-obs-area" id="fpobs-${colabId}-${etapaId}" placeholder="Digite uma observação..." onclick="event.stopPropagation()">${obsAtual ? obsAtual.replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''}</textarea>
+    </div>
+    <button class="fluxo-picker-save" onclick="salvarFluxoPicker('${colabId}','${etapaId}')">Salvar</button>
+  `;
+
+  // Marcar a cor atual com anel de seleção
+  const statusAtual = getFluxoStatus(colabId, etapaId);
+  const opts = picker.querySelectorAll('.fluxo-picker-opt');
+  const mapaIdx = { none: 0, wip: 1, done: 2 };
+  if (mapaIdx[statusAtual] !== undefined) {
+    opts[mapaIdx[statusAtual]].style.boxShadow = '0 0 0 3px #1a3a2a, 0 0 0 5px rgba(29,158,117,0.4)';
+  }
+
+  // Guardar estado de status temporário para salvar depois
+  picker._statusSelecionado = statusAtual;
+
+  const step = nodeEl.closest('.fluxo-step');
+  step.style.position = 'relative';
+  step.appendChild(picker);
+  pickerAberto = picker;
+
+  // Focar o textarea
+  setTimeout(() => {
+    const ta = document.getElementById(`fpobs-${colabId}-${etapaId}`);
+    if (ta) ta.focus();
+  }, 50);
+
+  // Fechar ao clicar fora
+  setTimeout(() => {
+    document.addEventListener('click', fecharPickerFora, { once: true });
+  }, 0);
+}
+
+function selecionarCorPicker(colabId, etapaId, status, el) {
+  if (!pickerAberto) return;
+  // Atualizar seleção visual
+  pickerAberto.querySelectorAll('.fluxo-picker-opt').forEach(o => o.style.boxShadow = '');
+  el.style.boxShadow = '0 0 0 3px #1a3a2a, 0 0 0 5px rgba(29,158,117,0.4)';
+  pickerAberto._statusSelecionado = status;
+}
+
+async function salvarFluxoPicker(colabId, etapaId) {
+  if (!pickerAberto) return;
+  const status = pickerAberto._statusSelecionado || 'none';
+  const taEl = document.getElementById(`fpobs-${colabId}-${etapaId}`);
+  const obs = taEl ? taEl.value.trim() : '';
+  fecharPickerAberto();
+  await setFluxoStatus(colabId, etapaId, status, obs);
+}
+
+function fecharPickerFora(e) {
+  if (pickerAberto && !pickerAberto.contains(e.target)) {
+    fecharPickerAberto();
+  }
+}
+
+async function setFluxoStatus(colabId, etapaId, status, obs) {
+  if (obs === undefined) obs = getFluxoObs(colabId, etapaId);
+
+  if (!fluxoCache[colabId]) fluxoCache[colabId] = {};
+  fluxoCache[colabId][etapaId] = { status, obs };
+
+  // Atualizar visual imediatamente
+  const nodeEl = document.querySelector(`#fstep-${colabId}-${etapaId} .fluxo-node`);
+  if (nodeEl) {
+    nodeEl.className = 'fluxo-node status-' + status;
+    // Atualizar ícone de observação
+    const existingIcon = nodeEl.querySelector('.fluxo-obs-icon');
+    if (obs) {
+      if (!existingIcon) {
+        const icon = document.createElement('div');
+        icon.className = 'fluxo-obs-icon';
+        icon.textContent = '💬';
+        nodeEl.appendChild(icon);
+      }
+    } else {
+      if (existingIcon) existingIcon.remove();
+    }
+  }
+
+  // Atualizar tooltip com observação
+  const stepEl = document.querySelector(`#fstep-${colabId}-${etapaId}`);
+  if (stepEl) {
+    const tooltip = stepEl.querySelector('.fluxo-tooltip');
+    if (tooltip) {
+      // Manter o desc original (primeira parte do tooltip antes de qualquer obs)
+      const descNode = tooltip.childNodes[0];
+      const descText = descNode ? descNode.textContent : '';
+      const obsHtml = obs ? `<div class="fluxo-tooltip-obs">💬 ${obs.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : '';
+      // Reconstruir tooltip preservando desc
+      const etapas = colabId ? ((fluxoCache[colabId] || {})['_tipo'] === 'MQP' ? FLUXO_ETAPAS_MQP : FLUXO_ETAPAS_RP) : FLUXO_ETAPAS_RP;
+      const etapa = [...FLUXO_ETAPAS_RP, ...FLUXO_ETAPAS_MQP].find(e => e.id === etapaId);
+      if (etapa) tooltip.innerHTML = etapa.desc + obsHtml;
+    }
+  }
+
+  // Persistir no Supabase (tabela fluxo_pipeline)
+  try {
+    const { error } = await sb.from('fluxo_pipeline').upsert(
+      { colaborador_id: colabId, etapa: etapaId, status: status, obs: obs || null },
+      { onConflict: 'colaborador_id,etapa' }
+    );
+    if (error) console.warn('Fluxo save error:', error.message);
+  } catch(e) { console.warn('Fluxo save:', e); }
+}
+
+async function carregarFluxos(colabIds) {
+  if (!colabIds.length) return;
+  try {
+    const { data } = await sb.from('fluxo_pipeline').select('*').in('colaborador_id', colabIds);
+    (data||[]).forEach(row => {
+      if (!fluxoCache[row.colaborador_id]) fluxoCache[row.colaborador_id] = {};
+      fluxoCache[row.colaborador_id][row.etapa] = { status: row.status, obs: row.obs || '' };
+    });
+  } catch(e) { console.warn('Carregar fluxos:', e); }
+}
+
+// Estado das sub-pastas RP/MQP abertas
+const rpPastasAbertas = new Set();
+
+function toggleRpPasta(safeSubKey) {
+  if (rpPastasAbertas.has(safeSubKey)) { rpPastasAbertas.delete(safeSubKey); } else { rpPastasAbertas.add(safeSubKey); }
+  const body = document.getElementById('rp-body-' + safeSubKey);
+  const icon = document.getElementById('rp-icon-' + safeSubKey);
+  const aberta = rpPastasAbertas.has(safeSubKey);
+  if (body) body.classList.toggle('open', aberta);
+  if (icon) {
+    icon.textContent = aberta ? '📂' : '📁';
+    icon.classList.toggle('open', aberta);
+    icon.classList.toggle('closed', !aberta);
+  }
+}
+
+function renderLista(filtro='', filtroCC='', filtroFuncao='', filtroNumero='') {
+  // Atualizar placeholder do campo número conforme ambiente
+  const inputNumero = document.getElementById('filtro-numero');
+  if (inputNumero) inputNumero.placeholder = ambienteSelecionado === 2 ? 'Nº MQP...' : 'Nº RP...';
+
   popularFiltros();
   const el = document.getElementById('lista-colaboradores');
   let lista = colaboradores;
   if(filtro) lista = lista.filter(c => c.nome.toLowerCase().includes(filtro) || c.cpf.includes(filtro));
   if(filtroCC) lista = lista.filter(c => c.centro_custo === filtroCC);
   if(filtroFuncao) lista = lista.filter(c => c.funcao === filtroFuncao);
+  if(filtroNumero) lista = lista.filter(c => String(c.numero_rpmqp || '').includes(filtroNumero));
 
-  const total = lista.length;
+  const total = lista.filter(c => c.tipo_registro !== 'pasta_rp').length;
   document.getElementById('lista-count').textContent = total + ' colaborador' + (total !== 1 ? 'es' : '') + ' cadastrado' + (total !== 1 ? 's' : '');
 
   if (!lista.length) {
@@ -778,13 +1572,13 @@ function renderLista(filtro='', filtroCC='', filtroFuncao='') {
     return;
   }
 
-  // Se há filtro ativo de CC ou busca de texto, mostra lista plana sem pastas
-  if (filtroCC || filtro) {
+  // Se há filtro ativo de CC ou busca de texto/número, mostra lista plana sem pastas
+  if (filtroCC || filtro || filtroNumero) {
     el.innerHTML = lista.map(c => renderColabItem(c)).join('');
     return;
   }
 
-  // Agrupar por Centro de Custo
+  // ── Nível 1: agrupar por Centro de Custo ──
   const grupos = {};
   lista.forEach(c => {
     const cc = c.centro_custo || 'Sem Centro de Custo';
@@ -799,28 +1593,150 @@ function renderLista(filtro='', filtroCC='', filtroFuncao='') {
 
   el.innerHTML = ccsOrdenados.map(cc => {
     const membros = grupos[cc];
-    const totalMembros = membros.length;
-    // Média de aprovação da pasta
-    const mediaPct = Math.round(membros.reduce((s, c) => s + calcPct(c.id), 0) / totalMembros);
-    const completos = membros.filter(c => calcPct(c.id) === 100).length;
+    // Excluir pastas RP dos contadores de colaboradores
+    const membrosReais = membros.filter(c => c.tipo_registro !== 'pasta_rp');
+    const totalMembros = membrosReais.length;
+    const isMQPEnv = ambienteSelecionado === 2;
+    const mediaPct = isMQPEnv || totalMembros === 0 ? 0 : Math.round(membrosReais.reduce((s, c) => s + calcPct(c.id), 0) / totalMembros);
+    const completos = isMQPEnv ? 0 : membrosReais.filter(c => calcPct(c.id) === 100).length;
     const aberta = pastasAbertas.has(cc);
     const ccId = cc.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const ccNum = cc.replace(/\D/g,'');
+    const showFluxoLegenda = ['1238','1217','1235','1225'].includes(ccNum) && !isMQPEnv;
 
-    return `<div class="cc-folder">
-      <div class="cc-folder-header" onclick="togglePasta('${cc.replace(/'/g, "\'")}')">
-        <span class="cc-folder-icon ${aberta ? 'open' : 'closed'}" id="pasta-icon-${ccId}">📂</span>
-        <div class="cc-folder-title">CC ${cc}</div>
-        <div class="cc-folder-meta">
-          <span class="cc-folder-badge">${totalMembros} colaborador${totalMembros !== 1 ? 'es' : ''}</span>
-          <span style="font-size:11px;opacity:0.8;">${completos}/${totalMembros} completos</span>
-          <div class="cc-folder-progress">
-            <div class="cc-folder-bar"><div class="cc-folder-bar-fill" style="width:${mediaPct}%"></div></div>
-            <span style="font-size:11px;">${mediaPct}%</span>
+    // Separar: com número (vão para sub-pasta) e sem número (ficam soltos dentro do CC)
+    const comNumero = membros.filter(c => c.numero_rpmqp && String(c.numero_rpmqp).trim() !== '');
+    const semNumero = membros.filter(c => !c.numero_rpmqp || String(c.numero_rpmqp).trim() === '');
+
+    // ── Nível 2: agrupar por número RP/MQP (apenas os que têm número) ──
+    // Separar pastas RP (tipo_registro='pasta_rp') dos colaboradores normais
+    const porRp = {}; // { rpKey: { pastaRp: obj|null, colaboradores: [] } }
+    comNumero.forEach(c => {
+      const num = String(c.numero_rpmqp).trim();
+      const tipo = c.tipo_doc || 'RP';
+      const rpKey = `${tipo} ${num}`;
+      if (!porRp[rpKey]) porRp[rpKey] = { pastaRp: null, colaboradores: [] };
+      if (c.tipo_registro === 'pasta_rp') {
+        porRp[rpKey].pastaRp = c; // a pasta RP vira o cabeçalho da sub-pasta
+      } else {
+        porRp[rpKey].colaboradores.push(c);
+      }
+    });
+    const rpKeys = Object.keys(porRp).sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
+
+    // Se só há uma sub-pasta e nenhum solto, abre automaticamente
+    if (rpKeys.length === 1 && semNumero.length === 0) rpPastasAbertas.add(ccId + '__' + rpKeys[0].replace(/[^a-zA-Z0-9_-]/g, '_'));
+
+    const subPastasHtml = rpKeys.map(rpKey => {
+      const grupo = porRp[rpKey];
+      const pastaRp = grupo.pastaRp;
+      const colabs = grupo.colaboradores;
+      const subTotal = colabs.length;
+      const safeSubKey = ccId + '__' + rpKey.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const subAberta = rpPastasAbertas.has(safeSubKey);
+
+      // Informações extras da pasta RP (se existir)
+      let pastaInfoHtml = '';
+      let pastaAcoesHtml = '';
+      if (pastaRp) {
+        const dataFmt = pastaRp.data_criacao ? new Date(pastaRp.data_criacao + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
+
+        // Calcular dias desde a criação
+        let diasHtml = '';
+        if (pastaRp.data_criacao) {
+          const hoje = new Date(); hoje.setHours(0,0,0,0);
+          const criacao = new Date(pastaRp.data_criacao + 'T00:00:00'); criacao.setHours(0,0,0,0);
+          const dias = Math.round((hoje - criacao) / (1000 * 60 * 60 * 24));
+          const corFundo = dias <= 15 ? 'rgba(0,0,0,0.55)' : dias <= 30 ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.55)';
+          const corTexto = dias <= 15 ? '#4cffb0' : dias <= 30 ? '#ffd180' : '#ff7f7f';
+          diasHtml = `<span style="background:${corFundo};color:${corTexto};border-radius:10px;padding:2px 9px;font-size:11px;font-weight:700;white-space:nowrap;">⏱ ${dias}d</span>`;
+        }
+
+        // Previsão de conclusão com alerta de prazo
+        let previsaoHtml = '';
+        if (pastaRp.previsao_conclusao) {
+          const hoje2 = new Date(); hoje2.setHours(0,0,0,0);
+          const prev = new Date(pastaRp.previsao_conclusao + 'T00:00:00'); prev.setHours(0,0,0,0);
+          const diffDias = Math.round((prev - hoje2) / (1000 * 60 * 60 * 24));
+          const prevFmt = prev.toLocaleDateString('pt-BR');
+          let corPrev, iconePrev, txtPrev;
+          if (diffDias < 0)       { corPrev = '#ff7f7f'; iconePrev = '⚠️'; txtPrev = `Atrasada ${Math.abs(diffDias)}d`; }
+          else if (diffDias === 0){ corPrev = '#ffd180'; iconePrev = '🔔'; txtPrev = 'Vence hoje'; }
+          else if (diffDias <= 7) { corPrev = '#ffd180'; iconePrev = '📅'; txtPrev = `${diffDias}d para prazo`; }
+          else                    { corPrev = '#afffde'; iconePrev = '📅'; txtPrev = prevFmt; }
+          previsaoHtml = `<span style="background:rgba(0,0,0,0.55);color:${corPrev};border-radius:10px;padding:2px 9px;font-size:11px;font-weight:700;white-space:nowrap;" title="Previsão de conclusão: ${prevFmt}">${iconePrev} ${txtPrev}</span>`;
+        }
+
+        pastaInfoHtml = `<span style="font-size:11px;opacity:0.8;">${pastaRp.vagas || '—'} vaga${(pastaRp.vagas||0)>1?'s':''} · Criada em ${dataFmt}</span>${diasHtml}${previsaoHtml}`;
+        pastaAcoesHtml = `<button class="btn btn-icon btn-outline" title="Compartilhar link de acompanhamento" onclick="event.stopPropagation();compartilharRP('${pastaRp.id}','${rpKey}')" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:white;font-size:13px;">🔗</button>
+          <button class="btn btn-icon btn-outline" title="Gerar resumo da RP" onclick="event.stopPropagation();gerarResumoPasta('${rpKey}', '${pastaRp.id}')" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:white;font-size:13px;">📊</button>
+          <button class="btn btn-icon btn-outline" title="Editar pasta" onclick="event.stopPropagation();editarColab('${pastaRp.id}')" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:white;font-size:13px;">✏️</button>
+          <button class="btn btn-icon btn-outline" title="Excluir pasta" onclick="event.stopPropagation();excluirColaboradorLista('${pastaRp.id}','${rpKey}')" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.25);color:#ffc5c5;font-size:13px;">🗑️</button>`;
+      }
+
+      // Verificar se vagas estão preenchidas (pasta fica verde)
+      const vagasPreenchidas = pastaRp && pastaRp.vagas > 0 && colabs.length >= pastaRp.vagas;
+      const headerBg = vagasPreenchidas
+        ? 'background: linear-gradient(135deg, #1a6b47, #1d9e75);'
+        : '';
+      const vagasBadgeHtml = pastaRp && pastaRp.vagas > 0
+        ? `<span style="background:rgba(0,0,0,0.3);color:${vagasPreenchidas ? '#afffde' : colabs.length > 0 ? '#ffd180' : 'rgba(255,255,255,0.75)'};border-radius:10px;padding:2px 9px;font-size:11px;font-weight:700;white-space:nowrap;">
+            ${vagasPreenchidas ? '✅' : '👤'} ${colabs.length}/${pastaRp.vagas} vaga${pastaRp.vagas !== 1 ? 's' : ''}
+           </span>`
+        : '';
+
+      // Conteúdo interno: só colaboradores (a pasta RP agora é o cabeçalho)
+      const colabsHtml = colabs.length > 0
+        ? colabs.map(c => renderColabItem(c)).join('')
+        : `<div style="padding:16px 48px;font-size:13px;color:var(--text-muted);font-style:italic;">Nenhum colaborador vinculado a esta pasta ainda.</div>`;
+
+      return `<div class="rp-folder">
+        <div class="rp-folder-header" onclick="toggleRpPasta('${safeSubKey}')" style="justify-content:space-between;${headerBg}">
+          <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+            <span class="rp-folder-icon ${subAberta ? 'open' : 'closed'}" id="rp-icon-${safeSubKey}">${subAberta ? '📂' : '📁'}</span>
+            <div class="rp-folder-title">${rpKey}</div>
+          </div>
+          <div class="rp-folder-meta" style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+            ${pastaInfoHtml}
+            ${vagasBadgeHtml}
+            ${pastaAcoesHtml}
           </div>
         </div>
+        <div class="rp-folder-body ${subAberta ? 'open' : ''}" id="rp-body-${safeSubKey}">
+          ${colabsHtml}
+        </div>
+      </div>`;
+    }).join('');
+
+    // Colaboradores sem número ficam diretamente dentro do CC (sem sub-pasta)
+    const semNumeroHtml = semNumero.map(c => renderColabItem(c)).join('');
+
+    const metaHtml = isMQPEnv
+      ? `<span class="cc-folder-badge">${rpKeys.length} processo${rpKeys.length !== 1 ? 's' : ''} · ${totalMembros} colaborador${totalMembros !== 1 ? 'es' : ''}</span>`
+      : `<span class="cc-folder-badge">${totalMembros} colaborador${totalMembros !== 1 ? 'es' : ''}</span>
+         <span style="font-size:11px;opacity:0.8;">${completos}/${totalMembros} completos</span>
+         <div class="cc-folder-progress">
+           <div class="cc-folder-bar"><div class="cc-folder-bar-fill" style="width:${mediaPct}%"></div></div>
+           <span style="font-size:11px;">${mediaPct}%</span>
+         </div>`;
+
+    return `<div class="cc-folder">
+      <div class="cc-folder-header" onclick="togglePasta('${ccId}', '${cc.replace(/'/g,"\\'")}')">
+        <span class="cc-folder-icon ${aberta ? 'open' : 'closed'}" id="pasta-icon-${ccId}">📂</span>
+        <div class="cc-folder-title">CC ${cc}</div>
+        <div class="cc-folder-meta">${metaHtml}</div>
       </div>
       <div class="cc-folder-body ${aberta ? 'open' : ''}" id="pasta-body-${ccId}">
-        ${membros.map(c => renderColabItem(c)).join('')}
+        ${showFluxoLegenda ? `
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:10px 16px;background:#f0f7f4;border-bottom:1px solid #d4e8de;font-size:11px;color:#4a5e55;">
+          <span style="font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#1a3a2a;">Legenda do fluxo:</span>
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:13px;height:13px;border-radius:50%;background:#d0d8d3;border:2px solid #1a3a2a;display:inline-block;flex-shrink:0;"></span>Não iniciado</span>
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:13px;height:13px;border-radius:50%;background:#f5d000;border:2px solid #1a3a2a;display:inline-block;flex-shrink:0;animation:pulse-wip 1.1s ease-in-out infinite;"></span>Em andamento</span>
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:13px;height:13px;border-radius:50%;background:#1d9e75;border:2px solid #1a3a2a;display:inline-block;flex-shrink:0;"></span>Concluído</span>
+          <span style="color:#7a9a8a;font-style:italic;">Clique na bolinha para alterar o status</span>
+        </div>` : ''}
+        ${subPastasHtml}
+        ${semNumeroHtml}
       </div>
     </div>`;
   }).join('');
@@ -858,22 +1774,152 @@ function mudarTab(t) {
   document.querySelectorAll('.tab').forEach((el,i) => el.classList.toggle('active', i===0));
   if (t==='lista') { editingId=null; limparForm(); document.getElementById('form-titulo').textContent='Pré-Cadastro de Colaborador'; }
 }
+
+let tipoDocSelecionado = 'RP';
+let modopastaRP = false;
+
+function togglePastaRpMode(forcar) {
+  modopastaRP = forcar !== undefined ? forcar : !modopastaRP;
+  const btn = document.getElementById('flag-pasta-rp-btn');
+  const thumb = document.getElementById('flag-pasta-rp-thumb');
+  const formPasta = document.getElementById('form-pasta-rp');
+  const formColab = document.getElementById('form-colaborador');
+  const titulo = document.getElementById('form-titulo');
+  const flagWrap = document.getElementById('flag-pasta-rp-wrap');
+  if (modopastaRP) {
+    btn.style.background = 'var(--green-mid)';
+    thumb.style.left = '20px';
+    formPasta.style.display = '';
+    formColab.style.display = 'none';
+    if (titulo) titulo.textContent = `Criar Pasta de ${ambienteSelecionado === 2 ? 'MQP' : 'RP'}`;
+    flagWrap.style.background = '#d6ede5';
+    flagWrap.style.borderColor = '#9fe1cb';
+  } else {
+    btn.style.background = '#ccc';
+    thumb.style.left = '2px';
+    formPasta.style.display = 'none';
+    formColab.style.display = '';
+    if (titulo) titulo.textContent = editingId ? 'Editar Colaborador' : 'Pré-Cadastro de Colaborador';
+    flagWrap.style.background = '#f0f7f4';
+    flagWrap.style.borderColor = '#c5ddd6';
+  }
+}
+
+function selecionarTipoDoc(tipo) {
+  tipoDocSelecionado = tipo;
+  const rpBtn = document.getElementById('flag-rp');
+  const mqpBtn = document.getElementById('flag-mqp');
+  if(!rpBtn||!mqpBtn) return;
+  if(tipo==='RP') {
+    rpBtn.style.background='var(--green-dark)'; rpBtn.style.color='white';
+    mqpBtn.style.background='white'; mqpBtn.style.color='var(--text-muted)';
+    const wrap = document.getElementById('mqp-subtipo-wrap');
+    if(wrap) wrap.style.display = 'none';
+    mqpSubtipoSelecionado = null;
+  } else {
+    mqpBtn.style.background='var(--green-dark)'; mqpBtn.style.color='white';
+    rpBtn.style.background='white'; rpBtn.style.color='var(--text-muted)';
+    const wrap = document.getElementById('mqp-subtipo-wrap');
+    if(wrap) wrap.style.display = '';
+  }
+}
+
+let mqpSubtipoSelecionado = null;
+
+function selecionarSubtipoMQP(subtipo) {
+  mqpSubtipoSelecionado = subtipo;
+  const ids = ['PROMOCAO','TRANSFERENCIA','FUNCIONAL'];
+  ids.forEach(s => {
+    const btn = document.getElementById(`mqp-btn-${s.toLowerCase()}`);
+    const campos = document.getElementById(`mqp-campos-${s.toLowerCase()}`);
+    const ativo = s === subtipo;
+    if(btn) {
+      btn.style.background = ativo ? 'var(--green-dark)' : 'white';
+      btn.style.color = ativo ? 'white' : 'var(--text-muted)';
+      btn.style.borderColor = ativo ? 'var(--green-dark)' : 'var(--gray-border)';
+    }
+    if(campos) campos.style.display = ativo ? '' : 'none';
+  });
+}
+
+function mascaraMoeda(el) {
+  let v = el.value.replace(/\D/g,'');
+  if(!v) { el.value=''; return; }
+  v = (parseInt(v)/100).toFixed(2);
+  el.value = 'R$ ' + v.replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
+
 function limparForm() {
-  ['f-nome','f-cpf','f-funcao','f-cc'].forEach(id=>{ document.getElementById(id).value=''; });
+  ['f-nome','f-cpf','f-funcao','f-cc','f-rpmqp',
+   'f-mqp-cargo-atual','f-mqp-cargo-final','f-mqp-salario-atual','f-mqp-salario-final',
+   'f-mqp-cc-atual','f-mqp-cc-destino','f-mqp-funcao-atual','f-mqp-funcao-final'
+  ].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['f-pasta-numero','f-pasta-cc','f-pasta-vagas','f-pasta-data','f-pasta-previsao'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const tipoAtual = ambienteSelecionado === 2 ? 'MQP' : 'RP';
+  tipoDocSelecionado = tipoAtual;
+  selecionarTipoDoc(tipoAtual);
   document.getElementById('form-msg').innerHTML='';
   document.getElementById('btn-salvar').textContent = 'Salvar Cadastro';
+  togglePastaRpMode(false);
+  // O toggle de pasta deve sempre aparecer (tanto RP quanto MQP)
+  const flagWrap = document.getElementById('flag-pasta-rp-wrap');
+  if (flagWrap) flagWrap.style.display = '';
+  // Atualizar textos do toggle conforme ambiente
+  const labelEl = document.getElementById('flag-pasta-rp-label');
+  const sublabelEl = document.getElementById('flag-pasta-rp-sublabel');
+  const tipo = ambienteSelecionado === 2 ? 'MQP' : 'RP';
+  if (labelEl) labelEl.textContent = `📁 Criar apenas pasta de ${tipo}`;
+  if (sublabelEl) sublabelEl.textContent = `Marque se este cadastro é somente a abertura de uma ${tipo}, sem colaborador vinculado ainda.`;
+  // Resetar subtipo MQP
+  mqpSubtipoSelecionado = null;
+  ['PROMOCAO','TRANSFERENCIA','FUNCIONAL'].forEach(s => {
+    const btn = document.getElementById(`mqp-btn-${s.toLowerCase()}`);
+    const campos = document.getElementById(`mqp-campos-${s.toLowerCase()}`);
+    if(btn){ btn.style.background='white'; btn.style.color='var(--text-muted)'; btn.style.borderColor='var(--gray-border)'; }
+    if(campos) campos.style.display = 'none';
+  });
 }
+
 function cancelarForm() { limparForm(); mudarTab('lista'); }
 
 function editarColab(id) {
   const c = colaboradores.find(x=>x.id===id);
   if(!c) return;
   editingId = id;
-  document.getElementById('f-nome').value = c.nome;
-  document.getElementById('f-cpf').value = c.cpf;
-  document.getElementById('f-funcao').value = c.funcao;
-  document.getElementById('f-cc').value = c.centro_custo;
-  document.getElementById('form-titulo').textContent = 'Editar Colaborador';
+  const isPastaRp = c.tipo_registro === 'pasta_rp';
+  togglePastaRpMode(isPastaRp);
+  if (isPastaRp) {
+    const el = document.getElementById('f-pasta-numero'); if(el) el.value = c.numero_rpmqp || '';
+    const elcc = document.getElementById('f-pasta-cc'); if(elcc) elcc.value = c.centro_custo || '';
+    const elv = document.getElementById('f-pasta-vagas'); if(elv) elv.value = c.vagas || '';
+    const eld = document.getElementById('f-pasta-data'); if(eld) eld.value = c.data_criacao || '';
+    const elp = document.getElementById('f-pasta-previsao'); if(elp) elp.value = c.previsao_conclusao || '';
+  } else {
+    document.getElementById('f-nome').value = c.nome || '';
+    document.getElementById('f-cpf').value = c.cpf || '';
+    document.getElementById('f-funcao').value = c.funcao || '';
+    document.getElementById('f-cc').value = c.centro_custo || '';
+    const rpmqpEl = document.getElementById('f-rpmqp');
+    if(rpmqpEl) rpmqpEl.value = c.numero_rpmqp || '';
+    selecionarTipoDoc(c.tipo_doc || 'RP');
+    // Restaurar subtipo MQP e campos extras
+    if ((c.tipo_doc || 'RP') === 'MQP' && c.mqp_subtipo) {
+      selecionarSubtipoMQP(c.mqp_subtipo);
+      if (c.mqp_subtipo === 'PROMOCAO') {
+        const el1 = document.getElementById('f-mqp-cargo-atual'); if(el1) el1.value = c.mqp_cargo_atual || '';
+        const el2 = document.getElementById('f-mqp-cargo-final'); if(el2) el2.value = c.mqp_cargo_final || '';
+        const el3 = document.getElementById('f-mqp-salario-atual'); if(el3) el3.value = c.mqp_salario_atual || '';
+        const el4 = document.getElementById('f-mqp-salario-final'); if(el4) el4.value = c.mqp_salario_final || '';
+      } else if (c.mqp_subtipo === 'TRANSFERENCIA') {
+        const el1 = document.getElementById('f-mqp-cc-atual'); if(el1) el1.value = c.mqp_cc_atual || '';
+        const el2 = document.getElementById('f-mqp-cc-destino'); if(el2) el2.value = c.mqp_cc_destino || '';
+      } else if (c.mqp_subtipo === 'FUNCIONAL') {
+        const el1 = document.getElementById('f-mqp-funcao-atual'); if(el1) el1.value = c.mqp_funcao_atual || '';
+        const el2 = document.getElementById('f-mqp-funcao-final'); if(el2) el2.value = c.mqp_funcao_final || '';
+      }
+    }
+  }
+  document.getElementById('form-titulo').textContent = isPastaRp ? `Editar Pasta de ${ambienteSelecionado === 2 ? 'MQP' : 'RP'}` : 'Editar Colaborador';
   document.getElementById('btn-salvar').textContent = 'Salvar Alterações';
   mudarTab('cadastro');
 }
@@ -885,18 +1931,85 @@ function mascaraCPF(v) {
 document.addEventListener('input', e => { if(e.target.id==='f-cpf') e.target.value = mascaraCPF(e.target.value); });
 
 async function salvarColaborador() {
+  const msg = document.getElementById('form-msg');
+
+  if (modopastaRP) {
+    // ── Modo: apenas pasta de RP ──
+    const numero = (document.getElementById('f-pasta-numero').value || '').trim();
+    const cc = (document.getElementById('f-pasta-cc').value || '').trim();
+    const vagas = (document.getElementById('f-pasta-vagas').value || '').trim();
+    const data_criacao = (document.getElementById('f-pasta-data').value || '').trim();
+    const previsao_conclusao = (document.getElementById('f-pasta-previsao').value || '').trim() || null;
+    if (!numero || !cc || !vagas || !data_criacao) {
+      msg.innerHTML='<div class="alert alert-error">Preencha todos os campos obrigatórios.</div>'; return;
+    }
+    showLoading('Salvando...');
+    const tipoPasta = ambienteSelecionado === 2 ? 'MQP' : 'RP';
+    const payload = { numero_rpmqp: numero, centro_custo: cc, vagas: parseInt(vagas), data_criacao, previsao_conclusao, tipo_doc: tipoPasta, tipo_registro: 'pasta_rp', nome: `${tipoPasta} ${numero}`, cpf: '', funcao: '' };
+    let error;
+    if (editingId) {
+      ({ error } = await sb.from('colaboradores').update(payload).eq('id', editingId));
+    } else {
+      ({ error } = await sb.from('colaboradores').insert(payload));
+    }
+    hideLoading();
+    if (error) { msg.innerHTML=`<div class="alert alert-error">Erro: ${error.message}</div>`; return; }
+    msg.innerHTML='<div class="alert alert-success">' + (editingId ? 'Pasta atualizada' : `Pasta de ${tipoPasta} criada`) + ' com sucesso!</div>';
+    await carregarColaboradores();
+    setTimeout(()=>{ limparForm(); mudarTab('lista'); }, 1200);
+    return;
+  }
+
+  // ── Modo: colaborador normal ──
   const nome = document.getElementById('f-nome').value.trim();
   const cpf = document.getElementById('f-cpf').value.trim();
   const funcao = document.getElementById('f-funcao').value.trim();
   const cc = document.getElementById('f-cc').value.trim();
-  const msg = document.getElementById('form-msg');
+  const numero_rpmqp = (document.getElementById('f-rpmqp').value || '').trim();
+  const tipo_doc = tipoDocSelecionado || 'RP';
   if(!nome||!cpf||!funcao||!cc) { msg.innerHTML='<div class="alert alert-error">Preencha todos os campos obrigatórios.</div>'; return; }
+
+  // Validar subtipo MQP
+  if (tipo_doc === 'MQP' && !mqpSubtipoSelecionado) {
+    msg.innerHTML='<div class="alert alert-error">Selecione o tipo de MQP: Promoção, Transferência ou Funcional.</div>'; return;
+  }
+
+  // Coletar campos extras MQP
+  let mqpPayload = { mqp_subtipo: null, mqp_cargo_atual: null, mqp_cargo_final: null, mqp_salario_atual: null, mqp_salario_final: null, mqp_cc_atual: null, mqp_cc_destino: null, mqp_funcao_atual: null, mqp_funcao_final: null };
+  if (tipo_doc === 'MQP' && mqpSubtipoSelecionado) {
+    mqpPayload.mqp_subtipo = mqpSubtipoSelecionado;
+    if (mqpSubtipoSelecionado === 'PROMOCAO') {
+      const cargoAtual = (document.getElementById('f-mqp-cargo-atual').value || '').trim();
+      const cargoFinal = (document.getElementById('f-mqp-cargo-final').value || '').trim();
+      const salAtual = (document.getElementById('f-mqp-salario-atual').value || '').trim();
+      const salFinal = (document.getElementById('f-mqp-salario-final').value || '').trim();
+      if (!cargoAtual || !cargoFinal || !salAtual || !salFinal) { msg.innerHTML='<div class="alert alert-error">Preencha todos os campos de Promoção.</div>'; return; }
+      mqpPayload.mqp_cargo_atual = cargoAtual;
+      mqpPayload.mqp_cargo_final = cargoFinal;
+      mqpPayload.mqp_salario_atual = salAtual;
+      mqpPayload.mqp_salario_final = salFinal;
+    } else if (mqpSubtipoSelecionado === 'TRANSFERENCIA') {
+      const ccAtual = (document.getElementById('f-mqp-cc-atual').value || '').trim();
+      const ccDestino = (document.getElementById('f-mqp-cc-destino').value || '').trim();
+      if (!ccAtual || !ccDestino) { msg.innerHTML='<div class="alert alert-error">Preencha os campos de Transferência.</div>'; return; }
+      mqpPayload.mqp_cc_atual = ccAtual;
+      mqpPayload.mqp_cc_destino = ccDestino;
+    } else if (mqpSubtipoSelecionado === 'FUNCIONAL') {
+      const funcaoAtual = (document.getElementById('f-mqp-funcao-atual').value || '').trim();
+      const funcaoFinal = (document.getElementById('f-mqp-funcao-final').value || '').trim();
+      if (!funcaoAtual || !funcaoFinal) { msg.innerHTML='<div class="alert alert-error">Preencha os campos de Funcional.</div>'; return; }
+      mqpPayload.mqp_funcao_atual = funcaoAtual;
+      mqpPayload.mqp_funcao_final = funcaoFinal;
+    }
+  }
+
   showLoading('Salvando...');
   let error;
+  const payload = {nome,cpf,funcao,centro_custo:cc,numero_rpmqp,tipo_doc,tipo_registro:'colaborador',...mqpPayload};
   if (editingId) {
-    ({ error } = await sb.from('colaboradores').update({nome,cpf,funcao,centro_custo:cc}).eq('id',editingId));
+    ({ error } = await sb.from('colaboradores').update(payload).eq('id',editingId));
   } else {
-    ({ error } = await sb.from('colaboradores').insert({nome,cpf,funcao,centro_custo:cc}));
+    ({ error } = await sb.from('colaboradores').insert(payload));
   }
   hideLoading();
   if (error) { msg.innerHTML=`<div class="alert alert-error">Erro: ${error.message}</div>`; return; }
@@ -961,6 +2074,37 @@ function copiarLink() {
 // =============================================
 // DETALHE RECRUTADOR
 // =============================================
+function abrirDetalheComSenha(id) {
+  criarModal(
+    '🔒 Acesso ao Checklist',
+    `<div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Digite a senha para acessar o checklist de documentação.</div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="senha-checklist" placeholder="••••••••" autofocus
+        style="letter-spacing:4px;font-size:16px;"
+        onkeydown="if(event.key==='Enter') confirmarSenhaChecklist('${id}')">
+    </div>
+    <div id="senha-checklist-msg" style="margin-top:8px;"></div>`,
+    `<button class="btn btn-primary" onclick="confirmarSenhaChecklist('${id}')">Entrar</button>
+     <button class="btn btn-outline" onclick="fecharModal()">Cancelar</button>`
+  );
+  setTimeout(() => { const el = document.getElementById('senha-checklist'); if(el) el.focus(); }, 100);
+}
+
+function confirmarSenhaChecklist(id) {
+  const input = document.getElementById('senha-checklist');
+  const msg = document.getElementById('senha-checklist-msg');
+  if (!input) return;
+  if (input.value === 'PPP') {
+    fecharModal();
+    abrirDetalhe(id);
+  } else {
+    msg.innerHTML = '<div class="alert alert-error">Senha incorreta. Tente novamente.</div>';
+    input.value = '';
+    input.focus();
+  }
+}
+
 async function abrirDetalhe(id) {
   currentColab = colaboradores.find(x=>x.id===id);
   if(!currentColab) return;
@@ -990,15 +2134,75 @@ function renderDetalhe() {
   const c = currentColab;
   const docs = docsMap[c.id] || [];
   const pct = calcPct(c.id);
+  const isMQP = (c.tipo_doc || 'RP') === 'MQP';
   document.getElementById('dv-avatar').textContent = getInitials(c.nome);
   document.getElementById('dv-nome').textContent = c.nome;
-  document.getElementById('dv-meta').textContent = `${c.funcao} · ${c.centro_custo} · ${c.cpf}`;
+  let metaTxt = `${c.funcao} · ${c.centro_custo} · ${c.cpf}` + (c.numero_rpmqp ? ` · ${c.tipo_doc||'RP'} ${c.numero_rpmqp}` : '');
+  if (isMQP && c.mqp_subtipo) {
+    const subtipoLabel = {PROMOCAO:'Promoção', TRANSFERENCIA:'Transferência', FUNCIONAL:'Funcional'}[c.mqp_subtipo] || c.mqp_subtipo;
+    metaTxt += ` · ${subtipoLabel}`;
+  }
+  document.getElementById('dv-meta').textContent = metaTxt;
   document.getElementById('dv-progress').style.width = pct+'%';
   document.getElementById('dv-pct').textContent = pct+'% aprovados';
   document.getElementById('dv-badge').innerHTML = pct===100?'<span class="badge badge-green">Completo</span>':pct>0?'<span class="badge badge-amber">Em andamento</span>':'<span class="badge badge-gray">Pendente</span>';
-  document.getElementById('dv-link').textContent = getLinkColab(c.id);
-  renderDocRows('dv-docs', DOCS.filter(d=>!d.dep), docs, true);
-  renderDocRows('dv-deps', DOCS.filter(d=>d.dep), docs, true);
+
+  // Link e checklist de documentos: ocultar no ambiente MQP
+  const linkCard = document.getElementById('dv-link-card');
+  const mqpActions = document.getElementById('dv-mqp-actions');
+  const legendaCard = document.getElementById('dv-legenda-card');
+  const docsSection = document.getElementById('dv-docs-section');
+  const depsSection = document.getElementById('dv-deps-section');
+  if (linkCard)   linkCard.style.display   = isMQP ? 'none' : '';
+  if (mqpActions) mqpActions.style.display = isMQP ? 'flex' : 'none';
+  if (legendaCard) legendaCard.style.display = isMQP ? 'none' : '';
+  if (docsSection) docsSection.style.display = isMQP ? 'none' : '';
+  if (depsSection) depsSection.style.display = isMQP ? 'none' : '';
+
+  if (!isMQP) {
+    document.getElementById('dv-link').textContent = getLinkColab(c.id);
+    renderDocRows('dv-docs', DOCS.filter(d=>!d.dep), docs, true);
+    renderDocRows('dv-deps', DOCS.filter(d=>d.dep), docs, true);
+  }
+
+  // Card de detalhes MQP (subtipo + campos extras)
+  const mqpDetalheCard = document.getElementById('dv-mqp-detalhes-card');
+  if (mqpDetalheCard) {
+    if (isMQP && c.mqp_subtipo) {
+      const labels = {PROMOCAO:'🏅 Promoção', TRANSFERENCIA:'🔄 Transferência', FUNCIONAL:'📋 Funcional'};
+      let camposHtml = '';
+      if (c.mqp_subtipo === 'PROMOCAO') {
+        camposHtml = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div><div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Cargo Atual</div><div style="font-size:13px;font-weight:500;">${c.mqp_cargo_atual || '—'}</div></div>
+            <div><div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Cargo Final</div><div style="font-size:13px;font-weight:500;">${c.mqp_cargo_final || '—'}</div></div>
+            <div><div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Salário Atual</div><div style="font-size:13px;font-weight:500;">${c.mqp_salario_atual || '—'}</div></div>
+            <div><div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Salário Final</div><div style="font-size:13px;font-weight:500;">${c.mqp_salario_final || '—'}</div></div>
+          </div>`;
+      } else if (c.mqp_subtipo === 'TRANSFERENCIA') {
+        camposHtml = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div><div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">CC Atual</div><div style="font-size:13px;font-weight:500;">${c.mqp_cc_atual || '—'}</div></div>
+            <div><div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">CC Destino</div><div style="font-size:13px;font-weight:500;">${c.mqp_cc_destino || '—'}</div></div>
+          </div>`;
+      } else if (c.mqp_subtipo === 'FUNCIONAL') {
+        camposHtml = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div><div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Função Atual</div><div style="font-size:13px;font-weight:500;">${c.mqp_funcao_atual || '—'}</div></div>
+            <div><div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;">Função Final</div><div style="font-size:13px;font-weight:500;">${c.mqp_funcao_final || '—'}</div></div>
+          </div>`;
+      }
+      mqpDetalheCard.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <span style="font-size:13px;font-weight:700;color:var(--green-dark);">${labels[c.mqp_subtipo] || c.mqp_subtipo}</span>
+          <span style="background:var(--green-light);color:var(--green-text);border-radius:12px;padding:2px 10px;font-size:11px;font-weight:700;">Tipo de MQP</span>
+        </div>
+        ${camposHtml}`;
+      mqpDetalheCard.style.display = '';
+    } else {
+      mqpDetalheCard.style.display = 'none';
+    }
+  }
 }
 
 function getDocState(docs, docId) {
@@ -1440,6 +2644,531 @@ async function imagemParaDados(url) {
       img.src = b64;
     });
   } catch (e) { console.error('Imagem erro:', e); return []; }
+}
+
+// =============================================
+// LINK DE ACOMPANHAMENTO DA RP
+// =============================================
+function getLinkRP(pastaRpId) {
+  return window.location.origin + window.location.pathname + '#rp/' + pastaRpId;
+}
+
+function compartilharRP(pastaRpId, rpKey) {
+  const link = getLinkRP(pastaRpId);
+  window._rpLinkParaCopiar = link;
+  criarModal(
+    '🔗 Link de Acompanhamento — ' + rpKey,
+    `<div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">
+       Compartilhe este link para que alguém acompanhe a evolução desta RP em tempo real, sem precisar de login.
+     </div>
+     <div class="link-box" style="user-select:all;word-break:break-all;cursor:pointer;" onclick="navigator.clipboard.writeText('${link}').then(()=>{this.style.background='#e6f7f1';setTimeout(()=>this.style.background='',1200)})">
+       <span style="font-size:11px;font-family:monospace;">${link}</span>
+     </div>
+     <div style="margin-top:8px;font-size:11px;color:var(--text-muted);">Clique na caixa acima ou no botão para copiar. Funciona em qualquer navegador.</div>`,
+    `<button class="btn btn-primary" onclick="navigator.clipboard.writeText(window._rpLinkParaCopiar).then(()=>{this.textContent='✅ Copiado!';setTimeout(()=>this.textContent='Copiar link',1500)})">Copiar link</button>
+     <button class="btn btn-outline" onclick="fecharModal()">Fechar</button>`
+  );
+}
+
+async function carregarVisaoRP(pastaRpId) {
+  const url = localStorage.getItem('sb_url') || SB_URL_DEFAULT;
+  const key = localStorage.getItem('sb_key') || SB_KEY_DEFAULT;
+  const cleanUrl = url.replace(/\/rest\/v1\/?$/, '').replace(/\/$/, '');
+  sb = supabase.createClient(cleanUrl, key, { auth: { persistSession: false } });
+
+  document.getElementById('rp-view-screen').style.display = '';
+  document.getElementById('rpv-lista').innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;font-size:13px;">Carregando...</div>';
+
+  // Buscar pasta RP
+  const { data: pasta } = await sb.from('colaboradores').select('*').eq('id', pastaRpId).single();
+  if (!pasta) {
+    document.getElementById('rp-view-screen').innerHTML = '<div style="text-align:center;padding:80px;color:#888;font-size:15px;">Pasta não encontrada. Verifique o link.</div>';
+    return;
+  }
+
+  // Buscar colaboradores vinculados (mesmo numero_rpmqp + centro_custo, exceto pasta_rp)
+  const { data: todosColabs } = await sb.from('colaboradores').select('*')
+    .eq('numero_rpmqp', pasta.numero_rpmqp)
+    .eq('centro_custo', pasta.centro_custo)
+    .neq('tipo_registro', 'pasta_rp');
+  const colabs = todosColabs || [];
+
+  // Buscar documentos e fluxo de todos os colaboradores
+  const ids = colabs.map(c => c.id);
+  let docsAll = [], fluxoAll = [];
+  if (ids.length > 0) {
+    const { data: d } = await sb.from('documentos').select('*').in('colaborador_id', ids);
+    docsAll = d || [];
+    const { data: f } = await sb.from('fluxo_pipeline').select('*').in('colaborador_id', ids);
+    fluxoAll = f || [];
+  }
+
+  // Popular cache local para usar calcPct e getFluxoState
+  ids.forEach(id => { docsMap[id] = docsAll.filter(x => x.colaborador_id === id); });
+  fluxoAll.forEach(row => {
+    if (!fluxoCache[row.colaborador_id]) fluxoCache[row.colaborador_id] = {};
+    fluxoCache[row.colaborador_id][row.etapa] = row.status;
+  });
+
+  const vagas       = pasta.vagas || 0;
+  const total       = colabs.length;
+  const pct         = vagas > 0 ? Math.min(100, Math.round(total / vagas * 100)) : 0;
+  const completos   = colabs.filter(c => calcPct(c.id) === 100).length;
+  const andamento   = colabs.filter(c => { const p = calcPct(c.id); return p > 0 && p < 100; }).length;
+  const pendentes   = colabs.filter(c => calcPct(c.id) === 0).length;
+  const dataFmt     = pasta.data_criacao ? new Date(pasta.data_criacao + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
+  const diasAbertos = pasta.data_criacao ? Math.round((new Date() - new Date(pasta.data_criacao + 'T00:00:00')) / 86400000) : null;
+  const tipoDoc     = pasta.tipo_doc || 'RP';
+  const rpKey       = `${tipoDoc} ${pasta.numero_rpmqp}`;
+  const ccNum       = String(pasta.centro_custo || '').trim();
+  const temFluxo    = ['1238','1217','1235','1225'].includes(ccNum);
+
+  document.title = 'Acompanhamento — ' + rpKey;
+  document.getElementById('rpv-titulo').textContent = rpKey;
+  document.getElementById('rpv-meta').textContent =
+    `CC ${pasta.centro_custo} · Aberta em ${dataFmt}${diasAbertos !== null ? ` · ${diasAbertos} dia${diasAbertos !== 1 ? 's' : ''} em aberto` : ''}`;
+
+  // Badge de previsão na view pública
+  if (pasta.previsao_conclusao) {
+    const prevEl = document.getElementById('rpv-previsao-wrap');
+    const hoje3 = new Date(); hoje3.setHours(0,0,0,0);
+    const prev3 = new Date(pasta.previsao_conclusao + 'T00:00:00'); prev3.setHours(0,0,0,0);
+    const diff3 = Math.round((prev3 - hoje3) / 86400000);
+    const prevFmt3 = prev3.toLocaleDateString('pt-BR');
+    let corP, iconeP, txtP;
+    if (diff3 < 0)       { corP='#e24b4a'; iconeP='⚠️'; txtP=`Prazo ultrapassado em ${Math.abs(diff3)} dia${Math.abs(diff3)!==1?'s':''}` ; }
+    else if (diff3 === 0){ corP='#ef9f27'; iconeP='🔔'; txtP='Previsão: hoje'; }
+    else if (diff3 <= 7) { corP='#ef9f27'; iconeP='📅'; txtP=`Previsão: ${prevFmt3} (${diff3}d)`; }
+    else                 { corP='#1d9e75'; iconeP='📅'; txtP=`Previsão: ${prevFmt3}`; }
+    if (prevEl) {
+      prevEl.style.display = '';
+      prevEl.innerHTML = `<span style="font-size:13px;">${iconeP}</span> <span style="font-weight:700;color:${corP};">${txtP}</span>`;
+    }
+  }
+  document.getElementById('rpv-vagas-num').textContent = vagas || '—';
+
+  // Barra de progresso
+  const barEl = document.getElementById('rpv-pct-bar');
+  barEl.style.width = pct + '%';
+  barEl.style.background = pct >= 100 ? '#1d9e75' : pct >= 50 ? '#ef9f27' : '#e24b4a';
+  document.getElementById('rpv-pct-txt').textContent = pct + '%';
+  document.getElementById('rpv-pct-txt').style.color  = pct >= 100 ? '#1d9e75' : pct >= 50 ? '#ef9f27' : '#e24b4a';
+  document.getElementById('rpv-pct-sub').textContent  =
+    `${total} colaborador${total !== 1 ? 'es' : ''} cadastrado${total !== 1 ? 's' : ''} de ${vagas} vaga${vagas !== 1 ? 's' : ''}`;
+
+  document.getElementById('rpv-stat-completos').textContent = completos;
+  document.getElementById('rpv-stat-andamento').textContent = andamento;
+  document.getElementById('rpv-stat-pendente').textContent  = pendentes;
+
+  // Lista de colaboradores
+  const listaEl = document.getElementById('rpv-lista');
+  if (colabs.length === 0) {
+    listaEl.innerHTML = '<div style="padding:32px;text-align:center;color:#aaa;font-size:13px;font-style:italic;background:white;border:1px solid #e0ddd5;border-radius:10px;">Nenhum colaborador vinculado a esta RP ainda.</div>';
+    return;
+  }
+
+  listaEl.innerHTML = colabs.map((c, i) => {
+    const pctC   = calcPct(c.id);
+    const corPct = pctC === 100 ? '#1d9e75' : pctC > 0 ? '#ef9f27' : '#ccc';
+    const status = pctC === 100 ? 'Completo' : pctC > 0 ? 'Em andamento' : 'Pendente';
+    const bgSt   = pctC === 100 ? '#e6f7f1' : pctC > 0 ? '#fef4e0' : '#f5f4f0';
+    const txSt   = pctC === 100 ? '#1d6b4a' : pctC > 0 ? '#a06010' : '#999';
+
+    // Pipeline de fluxo (só CC 1238/1217)
+    let fluxoHtml = '';
+    if (temFluxo) {
+      const etapasFl = (c.tipo_doc === 'MQP') ? FLUXO_ETAPAS_MQP : FLUXO_ETAPAS_RP;
+      const tituloFluxo = (c.tipo_doc === 'MQP') ? 'FLUXO DE MOVIMENTAÇÃO (MQP)' : 'FLUXO DE CONTRATAÇÃO';
+      const steps = etapasFl.map(e => {
+        const st = getFluxoState(c.id, e.id);
+        const cor = st === 'done' ? '#1d9e75' : st === 'wip' ? '#f5d000' : '#d0d8d3';
+        const borda = st === 'done' ? '#1a6b47' : st === 'wip' ? '#b8a000' : '#b0bab5';
+        const icone = st === 'done' ? '✓' : st === 'wip' ? '…' : '';
+        return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative;">
+          <div style="width:26px;height:26px;border-radius:50%;background:${cor};border:2px solid ${borda};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:${st==='done'?'white':st==='wip'?'#7a6000':'transparent'};position:relative;z-index:1;">${icone}</div>
+          <div style="font-size:8px;font-weight:600;color:#4a5e55;margin-top:4px;text-align:center;max-width:48px;line-height:1.2;text-transform:uppercase;">${e.label}</div>
+        </div>`;
+      }).join('');
+      fluxoHtml = `
+        <div style="margin-top:10px;padding:10px 8px 4px;background:#f9f8f5;border-radius:8px;border:1px solid #e8e5de;">
+          <div style="font-size:10px;font-weight:700;color:#888;margin-bottom:6px;letter-spacing:0.5px;">${tituloFluxo}</div>
+          <div style="display:flex;align-items:flex-start;position:relative;">
+            <div style="position:absolute;top:12px;left:5%;right:5%;height:2px;background:#d8dfd9;z-index:0;"></div>
+            ${steps}
+          </div>
+        </div>`;
+    }
+
+    return `<div style="background:white;border:1px solid #e0ddd5;border-radius:10px;padding:14px 16px;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:34px;height:34px;border-radius:50%;background:#1a3a2a;color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">
+            ${(c.nome||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()}
+          </div>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#1a1a1a;">${c.nome}</div>
+            <div style="font-size:11px;color:#888;margin-top:1px;">${c.funcao || '—'}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+          <div style="text-align:right;">
+            <div style="font-size:11px;color:#888;margin-bottom:3px;">Documentação</div>
+            <div style="background:#e8e5de;border-radius:6px;height:6px;width:100px;overflow:hidden;">
+              <div style="height:100%;border-radius:6px;background:${corPct};width:${pctC}%;transition:width 0.4s;"></div>
+            </div>
+            <div style="font-size:10px;color:#888;margin-top:2px;">${pctC}%</div>
+          </div>
+          <div style="background:${bgSt};color:${txSt};border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;white-space:nowrap;">${status}</div>
+        </div>
+      </div>
+      ${fluxoHtml}
+    </div>`;
+  }).join('');
+
+  // Auto-atualizar a cada 30s
+  setTimeout(() => carregarVisaoRP(pastaRpId), 30000);
+}
+
+// =============================================
+// RESUMO DA PASTA RP — PDF
+// =============================================
+async function gerarResumoPasta(rpKey, pastaRpId) {
+  // Buscar a pasta RP e os colaboradores vinculados
+  const pastaRp = colaboradores.find(c => c.id === pastaRpId);
+  const colabs  = colaboradores.filter(c =>
+    c.tipo_registro !== 'pasta_rp' &&
+    c.numero_rpmqp  === (pastaRp ? pastaRp.numero_rpmqp : '') &&
+    c.centro_custo  === (pastaRp ? pastaRp.centro_custo  : '')
+  );
+
+  showLoading('Gerando resumo da RP...');
+
+  try {
+    await carregarBibliotecas();
+    const { jsPDF } = window.jspdf;
+    const pdf  = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const PW   = 210, PH = 297, M = 14, CW = PW - M * 2;
+
+    const dataGeracao = new Date().toLocaleDateString('pt-BR', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+
+    // ── CABEÇALHO ──
+    pdf.setFillColor(26, 58, 42);
+    pdf.rect(M, M, CW, 24, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(20); pdf.setFont('helvetica', 'bold');
+    pdf.text('PA', M + 4, M + 15);
+    pdf.setFontSize(11); pdf.setFont('helvetica', 'normal');
+    pdf.text('Parente Andrade — Resumo de Andamento da RP', M + 18, M + 10);
+    pdf.setFontSize(9);
+    pdf.text(`Gerado em: ${dataGeracao}`, M + 18, M + 18);
+
+    // ── DADOS DA RP ──
+    let y = M + 34;
+    const dataFmt = pastaRp && pastaRp.data_criacao
+      ? new Date(pastaRp.data_criacao + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
+
+    let diasAberta = '—';
+    if (pastaRp && pastaRp.data_criacao) {
+      const hoje   = new Date(); hoje.setHours(0,0,0,0);
+      const criado = new Date(pastaRp.data_criacao + 'T00:00:00');
+      diasAberta   = Math.round((hoje - criado) / 86400000) + ' dias';
+    }
+
+    // Previsão de conclusão
+    let previsaoTxt = '—';
+    let previsaoCor = [80, 80, 80];
+    if (pastaRp && pastaRp.previsao_conclusao) {
+      const hoje2  = new Date(); hoje2.setHours(0,0,0,0);
+      const prev   = new Date(pastaRp.previsao_conclusao + 'T00:00:00'); prev.setHours(0,0,0,0);
+      const diff   = Math.round((prev - hoje2) / 86400000);
+      const prevFmt = prev.toLocaleDateString('pt-BR');
+      if      (diff < 0)  { previsaoTxt = `${prevFmt}  ⚠ Atrasada ${Math.abs(diff)} dia${Math.abs(diff)!==1?'s':''}`;  previsaoCor = [200, 50, 50]; }
+      else if (diff === 0){ previsaoTxt = `${prevFmt}  🔔 Vence hoje`;                                                  previsaoCor = [190, 120, 0]; }
+      else if (diff <= 7) { previsaoTxt = `${prevFmt}  (${diff} dia${diff!==1?'s':''} restante${diff!==1?'s':''})`;    previsaoCor = [190, 120, 0]; }
+      else                { previsaoTxt = `${prevFmt}  (${diff} dias restantes)`;                                       previsaoCor = [29, 120, 80]; }
+    }
+
+    const vagas          = pastaRp ? (pastaRp.vagas || 0) : 0;
+    const preenchidas    = colabs.length;
+    const faltam         = Math.max(0, vagas - preenchidas);
+    const pctPreenchido  = vagas > 0 ? Math.round((preenchidas / vagas) * 100) : 0;
+
+    // Bloco de info da RP — altura aumentada para 42 para caber a linha de previsão
+    pdf.setFillColor(240, 247, 244);
+    pdf.roundedRect(M, y, CW, 42, 3, 3, 'F');
+    pdf.setDrawColor(197, 221, 214);
+    pdf.roundedRect(M, y, CW, 42, 3, 3, 'S');
+
+    pdf.setTextColor(26, 58, 42);
+    pdf.setFontSize(16); pdf.setFont('helvetica', 'bold');
+    pdf.text(rpKey, M + 6, y + 11);
+
+    pdf.setFontSize(9); pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(80, 80, 80);
+    pdf.text(`Centro de Custo: ${pastaRp ? pastaRp.centro_custo : '—'}`, M + 6, y + 19);
+    pdf.text(`Data de abertura: ${dataFmt}   |   Dias em aberto: ${diasAberta}`, M + 6, y + 25);
+    pdf.text(`Vagas: ${vagas}   |   Preenchidas: ${preenchidas}   |   Faltam: ${faltam}`, M + 6, y + 31);
+
+    // Linha de previsão de conclusão com cor de status
+    pdf.setFontSize(9); pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(80, 80, 80);
+    pdf.text('Previsão de conclusão: ', M + 6, y + 38);
+    const labelWidth = pdf.getTextWidth('Previsão de conclusão: ');
+    pdf.setTextColor(...previsaoCor);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(previsaoTxt, M + 6 + labelWidth, y + 38);
+
+    // Barra de progresso de vagas
+    y += 48;
+    pdf.setFontSize(10); pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(26, 58, 42);
+    pdf.text('Preenchimento de Vagas', M, y);
+    y += 5;
+    pdf.setFillColor(224, 221, 213);
+    pdf.roundedRect(M, y, CW, 6, 3, 3, 'F');
+    if (pctPreenchido > 0) {
+      const cor = pctPreenchido >= 100 ? [29, 158, 117] : pctPreenchido >= 50 ? [239, 159, 39] : [226, 75, 74];
+      pdf.setFillColor(...cor);
+      pdf.roundedRect(M, y, CW * pctPreenchido / 100, 6, 3, 3, 'F');
+    }
+    pdf.setFontSize(8); pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(80, 80, 80);
+    pdf.text(`${pctPreenchido}%`, M + CW + 2, y + 4.5);
+    y += 14;
+
+    // ── TABELA DE COLABORADORES ──
+    pdf.setFontSize(10); pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(26, 58, 42);
+    pdf.text('Colaboradores Vinculados', M, y);
+    y += 4;
+    pdf.setDrawColor(26, 58, 42);
+    pdf.setLineWidth(0.4);
+    pdf.line(M, y, PW - M, y);
+    y += 5;
+
+    // Verifica se este CC tem fluxo pipeline
+    const ccNum = (pastaRp ? pastaRp.centro_custo : '') || '';
+    const temFluxo = ['1238', '1217', '1235', '1225'].includes(ccNum.trim());
+
+    if (colabs.length === 0) {
+      pdf.setFontSize(9); pdf.setFont('helvetica', 'italic');
+      pdf.setTextColor(150, 150, 150);
+      pdf.text('Nenhum colaborador vinculado a esta pasta ainda.', M, y);
+      y += 10;
+    } else {
+      // Cabeçalho da tabela
+      const colW = { num: 8, nome: 58, funcao: 46, docs: 26, status: 26 };
+      pdf.setFillColor(26, 58, 42);
+      pdf.rect(M, y, CW, 7, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(8); pdf.setFont('helvetica', 'bold');
+      let cx = M + 2;
+      pdf.text('#',              cx, y + 4.8); cx += colW.num;
+      pdf.text('Nome',           cx, y + 4.8); cx += colW.nome;
+      pdf.text('Função',         cx, y + 4.8); cx += colW.funcao;
+      pdf.text('Docs',           cx, y + 4.8); cx += colW.docs;
+      pdf.text('Status',         cx, y + 4.8);
+      y += 7;
+
+      // Linhas de colaboradores
+      for (let i = 0; i < colabs.length; i++) {
+        const c   = colabs[i];
+        const pct = calcPct(c.id);
+        const statusTxt = pct === 100 ? 'Completo' : pct > 0 ? 'Em andamento' : 'Pendente';
+        const corStatus = pct === 100 ? [29, 158, 117] : pct > 0 ? [239, 159, 39] : [180, 180, 180];
+        const rowH     = 8;
+        const fluxoH   = temFluxo ? 18 : 0; // altura extra para o pipeline
+        const totalH   = rowH + fluxoH;
+
+        if (y + totalH > PH - 20) { pdf.addPage(); y = M + 10; }
+
+        const bgFill = i % 2 === 0 ? [255, 255, 255] : [248, 248, 248];
+        pdf.setFillColor(...bgFill);
+        pdf.rect(M, y, CW, totalH, 'F');
+        pdf.setDrawColor(220, 220, 215);
+        pdf.setLineWidth(0.2);
+        pdf.line(M, y + totalH, M + CW, y + totalH);
+
+        // — Linha principal (nome / função / docs / status) —
+        pdf.setTextColor(40, 40, 40);
+        pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
+        cx = M + 2;
+        pdf.text(String(i + 1),                                           cx, y + 5.2); cx += colW.num;
+        pdf.text(pdf.splitTextToSize(c.nome, colW.nome - 2)[0],           cx, y + 5.2); cx += colW.nome;
+        pdf.text(pdf.splitTextToSize(c.funcao || '—', colW.funcao - 2)[0],cx, y + 5.2); cx += colW.funcao;
+
+        // Mini barra de docs
+        pdf.setFillColor(224, 221, 213);
+        pdf.roundedRect(cx, y + 2.5, 20, 3, 1.5, 1.5, 'F');
+        if (pct > 0) { pdf.setFillColor(...corStatus); pdf.roundedRect(cx, y + 2.5, 20 * pct / 100, 3, 1.5, 1.5, 'F'); }
+        pdf.setTextColor(80, 80, 80); pdf.setFontSize(7);
+        pdf.text(`${pct}%`, cx + 21, y + 5.2);
+        cx += colW.docs;
+
+        // Badge status
+        pdf.setFillColor(...corStatus.map(v => Math.min(255, v + 80)));
+        pdf.roundedRect(cx, y + 1.5, colW.status - 2, 5, 2, 2, 'F');
+        pdf.setTextColor(...corStatus.map(v => Math.max(0, v - 40)));
+        pdf.setFontSize(7); pdf.setFont('helvetica', 'bold');
+        pdf.text(statusTxt, cx + (colW.status - 2) / 2, y + 5.2, { align: 'center' });
+
+        // — Pipeline de Fluxo (só para CC 1238/1217) —
+        if (temFluxo) {
+          const fy       = y + rowH + 2;       // topo da área do pipeline
+          const fH       = fluxoH - 4;         // altura disponível
+          const nSteps   = FLUXO_ETAPAS.length; // 8 etapas
+          const stepW    = CW / nSteps;
+          const nodeR    = 4;                   // raio do círculo
+          const nodeCY   = fy + nodeR + 1;      // centro Y dos nós
+          const labelY   = nodeCY + nodeR + 3.5;// Y do label
+
+          // Linha conectora de fundo
+          pdf.setDrawColor(200, 208, 204);
+          pdf.setLineWidth(0.8);
+          const lineY = nodeCY;
+          pdf.line(M + stepW * 0.5, lineY, M + CW - stepW * 0.5, lineY);
+
+          FLUXO_ETAPAS.forEach((etapa, si) => {
+            const cx2    = M + stepW * si + stepW / 2;
+            const st     = getFluxoState(c.id, etapa.id);
+
+            // Linha colorida até este nó se done/wip
+            if (si > 0 && (st === 'done' || st === 'wip')) {
+              const prevSt = getFluxoState(c.id, FLUXO_ETAPAS[si - 1].id);
+              if (prevSt === 'done' || prevSt === 'wip') {
+                pdf.setDrawColor(29, 158, 117);
+                pdf.setLineWidth(0.8);
+                pdf.line(M + stepW * (si - 1) + stepW / 2, lineY, cx2, lineY);
+              }
+            }
+
+            // Nó (círculo)
+            if (st === 'done') {
+              pdf.setFillColor(29, 158, 117);     // verde
+              pdf.setDrawColor(20, 110, 80);
+            } else if (st === 'wip') {
+              pdf.setFillColor(245, 208, 0);      // amarelo
+              pdf.setDrawColor(180, 150, 0);
+            } else {
+              pdf.setFillColor(208, 216, 211);    // cinza
+              pdf.setDrawColor(160, 175, 168);
+            }
+            pdf.setLineWidth(0.5);
+            pdf.circle(cx2, nodeCY, nodeR, 'FD');
+
+            // Ícone dentro do nó (✓ se done, · se wip)
+            if (st === 'done') {
+              pdf.setTextColor(255, 255, 255);
+              pdf.setFontSize(5.5); pdf.setFont('helvetica', 'bold');
+              pdf.text('✓', cx2, nodeCY + 1.8, { align: 'center' });
+            } else if (st === 'wip') {
+              pdf.setTextColor(100, 80, 0);
+              pdf.setFontSize(6); pdf.setFont('helvetica', 'bold');
+              pdf.text('…', cx2, nodeCY + 1.8, { align: 'center' });
+            }
+
+            // Label abaixo do nó
+            pdf.setTextColor(60, 80, 70);
+            pdf.setFontSize(5); pdf.setFont('helvetica', st === 'done' ? 'bold' : 'normal');
+            const linhas = pdf.splitTextToSize(etapa.label, stepW - 1);
+            linhas.slice(0, 2).forEach((ln, li) => pdf.text(ln, cx2, labelY + li * 3.8, { align: 'center' }));
+          });
+        }
+
+        y += totalH;
+      }
+    }
+
+    // ── LEGENDA DO FLUXO (só para CC com pipeline) ──
+    if (temFluxo) {
+      y += 4;
+      if (y > PH - 30) { pdf.addPage(); y = M + 10; }
+      pdf.setFontSize(8); pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(26, 58, 42);
+      pdf.text('Legenda do fluxo de contratação:', M, y);
+      y += 4;
+      const legendItems = [
+        { cor: [29, 158, 117],  borda: [20, 110, 80],  txt: 'Concluído' },
+        { cor: [245, 208, 0],   borda: [180, 150, 0],  txt: 'Em andamento' },
+        { cor: [208, 216, 211], borda: [160, 175, 168],txt: 'Não iniciado' },
+      ];
+      let lx = M;
+      legendItems.forEach(it => {
+        pdf.setFillColor(...it.cor); pdf.setDrawColor(...it.borda);
+        pdf.setLineWidth(0.4);
+        pdf.circle(lx + 2.5, y + 2, 2.5, 'FD');
+        pdf.setTextColor(60, 60, 60); pdf.setFontSize(7.5); pdf.setFont('helvetica', 'normal');
+        pdf.text(it.txt, lx + 7, y + 3.5);
+        lx += 36;
+      });
+      y += 10;
+    }
+
+    // ── SUMÁRIO FINAL ──
+    y += 8;
+    if (y > PH - 50) { pdf.addPage(); y = M + 10; }
+
+    pdf.setDrawColor(197, 221, 214);
+    pdf.setLineWidth(0.4);
+    pdf.line(M, y, PW - M, y);
+    y += 6;
+
+    pdf.setFontSize(10); pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(26, 58, 42);
+    pdf.text('Sumário de Documentação', M, y);
+    y += 6;
+
+    // Estatísticas de docs de todos os colaboradores
+    let totalCompletos = 0, totalAndamento = 0, totalPendente = 0;
+    colabs.forEach(c => {
+      const pct = calcPct(c.id);
+      if (pct === 100) totalCompletos++;
+      else if (pct > 0) totalAndamento++;
+      else totalPendente++;
+    });
+
+    const blocoW = (CW - 8) / 3;
+    const blocos = [
+      { label: 'Completos',    val: totalCompletos, cor: [29, 158, 117],  corBg: [225, 245, 238] },
+      { label: 'Em andamento', val: totalAndamento, cor: [239, 159, 39],  corBg: [250, 238, 218] },
+      { label: 'Pendentes',    val: totalPendente,  cor: [226, 75, 74],   corBg: [252, 235, 235] },
+    ];
+    blocos.forEach((b, i) => {
+      const bx = M + i * (blocoW + 4);
+      pdf.setFillColor(...b.corBg);
+      pdf.roundedRect(bx, y, blocoW, 18, 3, 3, 'F');
+      pdf.setDrawColor(...b.cor);
+      pdf.setLineWidth(0.5);
+      pdf.roundedRect(bx, y, blocoW, 18, 3, 3, 'S');
+      pdf.setTextColor(...b.cor);
+      pdf.setFontSize(18); pdf.setFont('helvetica', 'bold');
+      pdf.text(String(b.val), bx + blocoW / 2, y + 11, { align: 'center' });
+      pdf.setFontSize(8); pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(80, 80, 80);
+      pdf.text(b.label, bx + blocoW / 2, y + 16, { align: 'center' });
+    });
+
+    // ── RODAPÉ ──
+    pdf.setTextColor(180, 180, 180);
+    pdf.setFontSize(7); pdf.setFont('helvetica', 'normal');
+    pdf.text(
+      `Parente Andrade — Sistema de Controle de Documentação — ${dataGeracao}`,
+      PW / 2, PH - 6, { align: 'center' }
+    );
+
+    const nomeArq = rpKey.replace(/\s+/g, '_');
+    const dataArq = new Date().toISOString().slice(0, 10);
+    pdf.save(`Resumo_${nomeArq}_${dataArq}.pdf`);
+
+  } catch (e) {
+    console.error('Erro ao gerar resumo:', e);
+    alert('Erro ao gerar o PDF: ' + e.message);
+  }
+
+  hideLoading();
 }
 
 async function baixarDossie() {
