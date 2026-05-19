@@ -554,6 +554,77 @@ create policy if not exists "allow_all_fluxo" on fluxo_pipeline for all using (t
       <button class="btn btn-outline" style="flex:1;" onclick="voltarLogin()">← Voltar</button>
       <button class="btn btn-primary" style="flex:2;" onclick="confirmarAmbiente()">Entrar →</button>
     </div>
+
+    <div style="margin-top:12px;text-align:center;">
+      <button class="btn btn-outline btn-sm" onclick="abrirGerenciadorUsuarios()" style="font-size:11px;color:var(--text-muted);border-color:var(--gray-border);gap:5px;">
+        <span>⚙</span> Gerenciador de usuários
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL GERENCIADOR DE USUÁRIOS ===== -->
+<div id="modal-gerenciador" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:999;display:none;align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:12px;width:100%;max-width:440px;margin:16px;box-shadow:0 8px 32px rgba(0,0,0,0.18);overflow:hidden;">
+
+    <!-- Senha de acesso -->
+    <div id="ger-senha-step" style="padding:28px 24px;">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="width:44px;height:44px;background:var(--green-dark);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin:0 auto 12px;">🔐</div>
+        <div style="font-weight:700;font-size:16px;color:var(--text-main);">Gerenciador de Usuários</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Insira a senha de acesso para continuar</div>
+      </div>
+      <div class="form-group">
+        <label>Senha de acesso</label>
+        <input type="password" id="ger-senha-input" placeholder="••••••" onkeydown="if(event.key==='Enter')verificarSenhaGer()">
+      </div>
+      <div id="ger-senha-msg" style="margin-top:8px;"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-outline" style="flex:1;" onclick="fecharGerenciador()">Cancelar</button>
+        <button class="btn btn-primary" style="flex:2;justify-content:center;" onclick="verificarSenhaGer()">Acessar →</button>
+      </div>
+    </div>
+
+    <!-- Painel de gerenciamento -->
+    <div id="ger-painel-step" style="display:none;">
+      <div style="background:var(--green-dark);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="color:white;font-weight:700;font-size:15px;">Usuários Pré-cadastrados</div>
+          <div style="color:rgba(255,255,255,0.65);font-size:11px;margin-top:2px;">Somente usuários listados poderão criar conta</div>
+        </div>
+        <button onclick="fecharGerenciador()" style="background:rgba(255,255,255,0.15);border:none;border-radius:6px;color:white;width:28px;height:28px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">×</button>
+      </div>
+
+      <!-- Formulário de cadastro -->
+      <div style="padding:20px 20px 0;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:12px;">Adicionar novo usuário</div>
+        <div style="display:grid;gap:10px;">
+          <div class="form-group">
+            <label>E-mail *</label>
+            <input type="email" id="ger-novo-email" placeholder="usuario@empresa.com">
+          </div>
+          <div class="form-group">
+            <label>Nome completo *</label>
+            <input type="text" id="ger-novo-nome" placeholder="Nome Sobrenome">
+          </div>
+          <div class="form-group">
+            <label>Centro de Custo (CC)</label>
+            <input type="text" id="ger-novo-cc" placeholder="Ex: 001 — Administrativo">
+          </div>
+        </div>
+        <div id="ger-form-msg" style="margin-top:8px;"></div>
+        <button class="btn btn-primary" style="width:100%;margin-top:12px;justify-content:center;" onclick="adicionarPreCadastro()">+ Adicionar usuário</button>
+      </div>
+
+      <!-- Lista de usuários -->
+      <div style="padding:16px 20px 20px;">
+        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:10px;">Usuários cadastrados</div>
+        <div id="ger-lista" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;">
+          <div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;">Carregando...</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1088,12 +1159,119 @@ async function criarConta() {
   const msg = document.getElementById('login-msg');
   if (!email || !pass) { msg.innerHTML='<div class="alert alert-error">Preencha e-mail e senha para criar conta.</div>'; return; }
   if (pass.length < 6) { msg.innerHTML='<div class="alert alert-error">A senha deve ter ao menos 6 caracteres.</div>'; return; }
+  showLoading('Verificando cadastro...');
+  // Verifica se o e-mail tem pré-cadastro
+  const { data: preCad, error: errCheck } = await sb
+    .from('usuarios_pre_cadastro')
+    .select('id')
+    .eq('email', email.toLowerCase())
+    .eq('ativo', true)
+    .maybeSingle();
+  if (errCheck) { hideLoading(); msg.innerHTML=`<div class="alert alert-error">Erro ao verificar cadastro: ${errCheck.message}</div>`; return; }
+  if (!preCad) { hideLoading(); msg.innerHTML='<div class="alert alert-error">E-mail não autorizado. Solicite ao administrador que faça seu pré-cadastro.</div>'; return; }
   showLoading('Criando conta...');
   const { error } = await sb.auth.signUp({ email, password: pass });
   hideLoading();
   if (error) { msg.innerHTML=`<div class="alert alert-error">${error.message}</div>`; return; }
   msg.innerHTML='<div class="alert alert-success">Conta criada! Verifique seu e-mail para confirmar, depois faça login.</div>';
 }
+
+// =============================================
+// GERENCIADOR DE USUÁRIOS
+// =============================================
+function abrirGerenciadorUsuarios() {
+  const modal = document.getElementById('modal-gerenciador');
+  modal.style.display = 'flex';
+  document.getElementById('ger-senha-step').style.display = 'block';
+  document.getElementById('ger-painel-step').style.display = 'none';
+  document.getElementById('ger-senha-input').value = '';
+  document.getElementById('ger-senha-msg').innerHTML = '';
+  setTimeout(() => document.getElementById('ger-senha-input').focus(), 100);
+}
+
+function fecharGerenciador() {
+  document.getElementById('modal-gerenciador').style.display = 'none';
+}
+
+function verificarSenhaGer() {
+  const senha = document.getElementById('ger-senha-input').value;
+  const msg = document.getElementById('ger-senha-msg');
+  if (senha !== 'PPO') {
+    msg.innerHTML = '<div class="alert alert-error">Senha incorreta.</div>';
+    document.getElementById('ger-senha-input').value = '';
+    document.getElementById('ger-senha-input').focus();
+    return;
+  }
+  document.getElementById('ger-senha-step').style.display = 'none';
+  document.getElementById('ger-painel-step').style.display = 'block';
+  carregarListaUsuarios();
+}
+
+async function carregarListaUsuarios() {
+  const lista = document.getElementById('ger-lista');
+  lista.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;">Carregando...</div>';
+  const { data, error } = await sb
+    .from('usuarios_pre_cadastro')
+    .select('*')
+    .order('nome');
+  if (error) {
+    // Tenta criar a tabela se não existir
+    lista.innerHTML = '<div style="text-align:center;color:var(--red-text);font-size:12px;padding:12px;">Tabela não encontrada. Adicione um usuário para criá-la automaticamente.</div>';
+    return;
+  }
+  if (!data || data.length === 0) {
+    lista.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:20px 0;">Nenhum usuário cadastrado.</div>';
+    return;
+  }
+  lista.innerHTML = data.map(u => `
+    <div style="background:var(--gray-bg);border:1px solid var(--gray-border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;">
+      <div style="width:34px;height:34px;border-radius:50%;background:var(--green-light);color:var(--green-text);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">${(u.nome||'?')[0].toUpperCase()}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.nome||'—'}</div>
+        <div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.email}</div>
+        ${u.cc ? `<div style="font-size:11px;color:var(--green-text);margin-top:1px;">CC: ${u.cc}</div>` : ''}
+      </div>
+      <button onclick="removerPreCadastro('${u.id}')" style="background:var(--red-bg);border:none;color:var(--red-text);border-radius:6px;width:26px;height:26px;cursor:pointer;font-size:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;" title="Remover">×</button>
+    </div>
+  `).join('');
+}
+
+async function adicionarPreCadastro() {
+  const email = document.getElementById('ger-novo-email').value.trim().toLowerCase();
+  const nome = document.getElementById('ger-novo-nome').value.trim();
+  const cc = document.getElementById('ger-novo-cc').value.trim();
+  const msg = document.getElementById('ger-form-msg');
+  if (!email || !nome) { msg.innerHTML='<div class="alert alert-error">E-mail e nome são obrigatórios.</div>'; return; }
+  msg.innerHTML = '';
+  const { error } = await sb.from('usuarios_pre_cadastro').insert([{ email, nome, cc: cc||null, ativo: true }]);
+  if (error) {
+    if (error.code === '42P01') {
+      // Tabela não existe, cria via RPC ou exibe instrução
+      msg.innerHTML='<div class="alert alert-error">Tabela não existe no Supabase. Crie a tabela <strong>usuarios_pre_cadastro</strong> com as colunas: id (uuid), email (text), nome (text), cc (text), ativo (bool).</div>';
+    } else {
+      msg.innerHTML=`<div class="alert alert-error">${error.message}</div>`;
+    }
+    return;
+  }
+  document.getElementById('ger-novo-email').value = '';
+  document.getElementById('ger-novo-nome').value = '';
+  document.getElementById('ger-novo-cc').value = '';
+  msg.innerHTML='<div class="alert alert-success">Usuário adicionado com sucesso!</div>';
+  setTimeout(() => { msg.innerHTML=''; }, 3000);
+  carregarListaUsuarios();
+}
+
+async function removerPreCadastro(id) {
+  if (!confirm('Remover este usuário da lista de pré-cadastro?')) return;
+  const { error } = await sb.from('usuarios_pre_cadastro').delete().eq('id', id);
+  if (error) { alert('Erro ao remover: ' + error.message); return; }
+  carregarListaUsuarios();
+}
+
+// Fechar modal clicando fora
+document.getElementById('modal-gerenciador').addEventListener('click', function(e) {
+  if (e.target === this) fecharGerenciador();
+});
 async function fazerLogout() {
   await sb.auth.signOut();
   location.reload();
