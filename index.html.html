@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Parente Andrade – Controle de Documentação</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   /* ===== RESET & BASE ===== */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -985,6 +987,22 @@ create policy if not exists "allow_all_fluxo" on fluxo_pipeline for all using (t
   </div>
 </div>
 
+<!-- ===== BOTÃO FLUTUANTE RELATÓRIO ===== -->
+<div id="btn-relatorio-wrap" style="display:none;position:fixed;bottom:20px;left:20px;z-index:200;">
+  <div style="position:relative;">
+    <button id="btn-relatorio-toggle" onclick="toggleMenuRelatorio()" style="width:40px;height:40px;border-radius:50%;background:var(--green-dark);border:none;color:white;font-size:18px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;letter-spacing:1px;font-weight:700;" title="Relatórios">⋮</button>
+    <div id="menu-relatorio" style="display:none;position:absolute;bottom:48px;left:0;background:white;border:1px solid var(--gray-border);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,0.15);min-width:170px;overflow:hidden;">
+      <div style="padding:10px 14px 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);">Baixar Relatório</div>
+      <button onclick="gerarRelatorio('pdf')" style="width:100%;text-align:left;padding:10px 14px;border:none;background:transparent;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;color:var(--text-main);" onmouseover="this.style.background='var(--gray-bg)'" onmouseout="this.style.background='transparent'">
+        <span style="font-size:16px;">📄</span> Relatório PDF
+      </button>
+      <button onclick="gerarRelatorio('excel')" style="width:100%;text-align:left;padding:10px 14px;border:none;background:transparent;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;color:var(--text-main);" onmouseover="this.style.background='var(--gray-bg)'" onmouseout="this.style.background='transparent'">
+        <span style="font-size:16px;">📊</span> Planilha Excel
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== LOADING OVERLAY ===== -->
 <div id="loading-overlay" class="loading-overlay" style="display:none;">
   <div class="loading-spinner-big"></div>
@@ -1030,6 +1048,7 @@ const DOCS = [
 let sb = null;
 let colaboradores = [];
 let docsMap = {};
+let tipoFiltro = 'RP';
 let currentColab = null;
 let editingId = null;
 let isCollabView = false;
@@ -1348,6 +1367,7 @@ function voltarLogin() {
 // =============================================
 async function carregarApp() {
   document.getElementById('recruiter-app').style.display = 'flex';
+  atualizarBotaoRelatorio();
   await carregarColaboradores();
 }
 async function carregarColaboradores() {
@@ -3604,6 +3624,213 @@ async function baixarDossie() {
   }
 
   hideLoading();
+}
+
+// =============================================
+// MENU RELATÓRIO FLUTUANTE
+// =============================================
+function toggleMenuRelatorio() {
+  const menu = document.getElementById('menu-relatorio');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('btn-relatorio-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    const menu = document.getElementById('menu-relatorio');
+    if (menu) menu.style.display = 'none';
+  }
+});
+
+// Mostrar botão só quando app estiver visível
+function atualizarBotaoRelatorio() {
+  const app = document.getElementById('recruiter-app');
+  const btn = document.getElementById('btn-relatorio-wrap');
+  if (btn) btn.style.display = (app && app.style.display !== 'none') ? 'block' : 'none';
+}
+
+// Helper: obter etapa atual (wip ou a última done, senão primeira)
+function getEtapaAtualLabel(c) {
+  const ccNum = (c.centro_custo || '').replace(/[^0-9]/g, '');
+  const etapas = (c.tipo_doc === 'MQP') ? FLUXO_ETAPAS_MQP
+    : CCS_TABOCA.includes(ccNum) ? FLUXO_ETAPAS_TABOCA
+    : FLUXO_ETAPAS_RP;
+
+  // Procura etapa em andamento (wip)
+  const wip = etapas.find(e => getFluxoStatus(c.id, e.id) === 'wip');
+  if (wip) return wip.label;
+
+  // Se não há wip, última done
+  const dones = etapas.filter(e => getFluxoStatus(c.id, e.id) === 'done');
+  if (dones.length > 0) {
+    const ultima = dones[dones.length - 1];
+    // Se última done é "APTO", retorna APTO
+    return ultima.label;
+  }
+
+  // Nenhuma etapa iniciada
+  return etapas[0] ? etapas[0].label : '—';
+}
+
+async function gerarRelatorio(tipo) {
+  document.getElementById('menu-relatorio').style.display = 'none';
+
+  // Buscar todos colaboradores do ambiente atual
+  showLoading('Gerando relatório...');
+  const { data, error } = await sb
+    .from('colaboradores')
+    .select('*')
+    .eq('tipo_doc', tipoFiltro)
+    .neq('tipo_registro', 'pasta_rp')
+    .order('nome');
+
+  if (error) { hideLoading(); alert('Erro ao buscar dados: ' + error.message); return; }
+
+  // Buscar status do fluxo de todos
+  const ids = (data || []).map(c => c.id);
+  if (ids.length > 0) {
+    const { data: fluxos } = await sb.from('fluxo_etapas').select('*').in('colaborador_id', ids);
+    if (fluxos) {
+      fluxos.forEach(f => {
+        if (!fluxoCache[f.colaborador_id]) fluxoCache[f.colaborador_id] = {};
+        fluxoCache[f.colaborador_id][f.etapa] = { status: f.status, obs: f.obs || '' };
+      });
+    }
+  }
+
+  const linhas = (data || []).map(c => ({
+    nome: c.nome || '—',
+    numero: `${c.tipo_doc || 'RP'} ${c.numero_rpmqp || '—'}`,
+    etapa: getEtapaAtualLabel(c),
+  }));
+
+  hideLoading();
+
+  if (tipo === 'excel') {
+    gerarExcelRelatorio(linhas);
+  } else {
+    gerarPDFRelatorio(linhas);
+  }
+}
+
+function gerarExcelRelatorio(linhas) {
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  const nomeArquivo = `Relatorio_${tipoFiltro}_${new Date().toISOString().slice(0,10)}.xlsx`;
+
+  // Cabeçalho informativo na linha 1
+  const aoa = [
+    [`Relatório de Andamento — ${tipoFiltro}`, '', '', ''],
+    [`Gerado em: ${hoje}`, '', '', ''],
+    [],
+    ['#', 'Nome do Colaborador', `Nº ${tipoFiltro}`, 'Fase Atual'],
+    ...linhas.map((l, i) => [i + 1, l.nome, l.numero, l.etapa]),
+    [],
+    [`Total: ${linhas.length} colaborador(es)`, '', '', ''],
+  ];
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+  // Larguras das colunas
+  ws['!cols'] = [
+    { wch: 5 },   // #
+    { wch: 40 },  // Nome
+    { wch: 18 },  // Nº RP/MQP
+    { wch: 28 },  // Fase
+  ];
+
+  // Mesclar células do título e subtítulo
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } },
+    { s: { r: aoa.length - 1, c: 0 }, e: { r: aoa.length - 1, c: 3 } },
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Relatório');
+  XLSX.writeFile(wb, nomeArquivo);
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function gerarPDFRelatorio(linhas) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  const PW = 297; const PH = 210; const M = 10;
+
+  // Header
+  doc.setFillColor(26, 58, 42);
+  doc.rect(M, M, PW - M*2, 16, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(13); doc.setFont('helvetica','bold');
+  doc.text(`Relatório de Andamento — ${tipoFiltro}`, M+4, M+10);
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.text(`Gerado em: ${hoje}`, PW - M - 2, M+10, { align:'right' });
+
+  // Cabeçalho da tabela
+  const colunas = [
+    { label: 'Nome do Colaborador', x: M, w: 100 },
+    { label: `Nº ${tipoFiltro}`,    x: M+100, w: 40 },
+    { label: 'Fase Atual',           x: M+140, w: 80 },
+  ];
+  let y = M + 24;
+  doc.setFillColor(240, 244, 241);
+  doc.rect(M, y, PW-M*2, 8, 'F');
+  doc.setDrawColor(200,210,205);
+  doc.setLineWidth(0.3);
+  doc.rect(M, y, PW-M*2, 8, 'S');
+  doc.setTextColor(26,58,42); doc.setFontSize(9); doc.setFont('helvetica','bold');
+  colunas.forEach(col => doc.text(col.label, col.x+2, y+5.5));
+  y += 8;
+
+  // Linhas
+  doc.setFont('helvetica','normal');
+  linhas.forEach((l, i) => {
+    if (y > PH - M - 10) {
+      doc.addPage('a4', 'landscape');
+      y = M + 10;
+      // reimprime cabeçalho
+      doc.setFillColor(240,244,241);
+      doc.rect(M, y, PW-M*2, 8, 'F');
+      doc.setFont('helvetica','bold'); doc.setTextColor(26,58,42);
+      colunas.forEach(col => doc.text(col.label, col.x+2, y+5.5));
+      doc.setFont('helvetica','normal');
+      y += 8;
+    }
+    const bg = i % 2 === 0 ? [255,255,255] : [248,250,248];
+    doc.setFillColor(...bg);
+    doc.rect(M, y, PW-M*2, 7, 'F');
+    doc.setDrawColor(220,228,222); doc.setLineWidth(0.2);
+    doc.line(M, y+7, PW-M, y+7);
+    doc.setTextColor(30,30,30); doc.setFontSize(8.5);
+    doc.text(doc.splitTextToSize(l.nome, colunas[0].w - 4)[0], colunas[0].x+2, y+4.8);
+    doc.text(l.numero, colunas[1].x+2, y+4.8);
+    // Badge colorido para fase
+    const isApto = l.etapa === 'APTO';
+    const cor = isApto ? [29,158,117] : [239,159,39];
+    doc.setFillColor(...cor);
+    doc.roundedRect(colunas[2].x+2, y+1.5, Math.min(l.etapa.length*2.2+6, 74), 4.5, 1.5, 1.5, 'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(7.5);
+    doc.text(l.etapa, colunas[2].x+5, y+4.7);
+    doc.setTextColor(30,30,30); doc.setFontSize(8.5);
+    y += 7;
+  });
+
+  // Total
+  y += 4;
+  doc.setFontSize(8); doc.setTextColor(100,100,100);
+  doc.text(`Total: ${linhas.length} colaborador(es)`, M, y);
+
+  // Rodapé
+  doc.setTextColor(180,180,180); doc.setFontSize(7);
+  doc.text(`Sistema de Controle de Documentação — ${hoje}`, PW/2, PH-4, { align:'center' });
+
+  doc.save(`Relatorio_${tipoFiltro}_${new Date().toISOString().slice(0,10)}.pdf`);
 }
 
 // START
