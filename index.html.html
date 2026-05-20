@@ -181,17 +181,23 @@
   .fluxo-node.status-none { background: #d0d8d3; }
   .fluxo-node.status-done { background: #1d9e75; }
   .fluxo-node.status-wip  { background: #f5d000; animation: pulse-wip 1.1s ease-in-out infinite; }
+  .fluxo-node.status-declined { background: var(--red); animation: pulse-declined 1.1s ease-in-out infinite; }
   @keyframes pulse-wip {
     0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(245,208,0,0.5); }
     50%      { opacity: 0.55; box-shadow: 0 0 0 6px rgba(245,208,0,0); }
+  }
+  @keyframes pulse-declined {
+    0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(226,75,74,0.5); }
+    50%      { opacity: 0.7; box-shadow: 0 0 0 6px rgba(226,75,74,0); }
   }
   .fluxo-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: #4a5e55; margin-top: 5px; text-align: center; max-width: 52px; line-height: 1.25; }
 
   /* picker popup */
   .fluxo-picker { position: absolute; top: 42px; left: 50%; transform: translateX(-50%); background: white; border: 1px solid var(--gray-border); border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.16); padding: 8px; display: flex; gap: 6px; z-index: 100; }
-  .fpo-none { background: #d0d8d3; }
-  .fpo-wip  { background: #f5d000; }
-  .fpo-done { background: #1d9e75; }
+  .fpo-none     { background: #d0d8d3; }
+  .fpo-wip      { background: #f5d000; }
+  .fpo-done     { background: #1d9e75; }
+  .fpo-declined { background: var(--red); }
   .fluxo-picker-opt { width: 26px; height: 26px; border-radius: 50%; border: 2.5px solid #1a3a2a; cursor: pointer; transition: transform 0.12s; }
   .fluxo-picker-opt:hover { transform: scale(1.18); }
   .fluxo-picker-obs-area { width: 100%; border: 1px solid var(--gray-border); border-radius: 6px; padding: 5px 7px; font-size: 11px; font-family: inherit; resize: none; color: var(--text-main); height: 56px; box-sizing: border-box; }
@@ -614,6 +620,21 @@ create policy if not exists "allow_all_fluxo" on fluxo_pipeline for all using (t
             <input type="text" id="ger-novo-cc" placeholder="Ex: 001 — Administrativo">
           </div>
         </div>
+
+        <!-- Toggle: Somente Visualização -->
+        <div id="ger-flag-readonly-wrap" onclick="toggleSomenteVisualizacao()" style="margin-top:12px;cursor:pointer;background:#f0f7f4;border:1.5px solid #c5ddd6;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:12px;transition:background 0.15s,border-color 0.15s;user-select:none;">
+          <div style="position:relative;width:38px;height:22px;flex-shrink:0;">
+            <div id="ger-flag-readonly-btn" style="width:38px;height:22px;border-radius:11px;background:#ccc;transition:background 0.2s;position:relative;">
+              <div id="ger-flag-readonly-thumb" style="width:16px;height:16px;border-radius:50%;background:white;position:absolute;top:3px;left:3px;transition:left 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
+            </div>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div id="ger-flag-readonly-label" style="font-size:13px;font-weight:600;color:var(--text-main);">👁️ Somente Visualização</div>
+            <div id="ger-flag-readonly-sublabel" style="font-size:11px;color:var(--text-muted);margin-top:1px;">Usuário poderá visualizar os dados, mas não poderá editar ou cadastrar.</div>
+          </div>
+        </div>
+        <input type="hidden" id="ger-novo-readonly" value="false">
+
         <div id="ger-form-msg" style="margin-top:8px;"></div>
         <button class="btn btn-primary" style="width:100%;margin-top:12px;justify-content:center;" onclick="adicionarPreCadastro()">+ Adicionar usuário</button>
       </div>
@@ -1047,6 +1068,7 @@ const DOCS = [
 // =============================================
 let sb = null;
 let colaboradores = [];
+var usuarioSomenteVisualizacao = false; // declarado com var para hoisting garantido
 let docsMap = {};
 let tipoFiltro = 'RP';
 let currentColab = null;
@@ -1196,6 +1218,88 @@ async function criarConta() {
 }
 
 // =============================================
+// PERMISSÃO DE USUÁRIO (somente visualização)
+// =============================================
+
+function aplicarModoVisualizacao() {
+  if (!usuarioSomenteVisualizacao) return;
+  enforceReadonly();
+}
+
+function bloquearSeVisualizacao(acao) {
+  if (usuarioSomenteVisualizacao) {
+    alert('⛔ Acesso negado: sua conta é de somente visualização e não permite ' + acao + '.');
+    return true;
+  }
+  return false;
+}
+
+function enforceReadonly() {
+  // ── 1. Sobrescrever TODAS as funções de escrita no window ──
+  const bloqueio = (nome) => () => { alert('⛔ Acesso negado: conta somente visualização.'); };
+
+  window.salvarColaborador       = bloqueio('salvarColaborador');
+  window.editarColab             = bloqueio('editarColab');
+  window.editarColaboradorAtual  = bloqueio('editarColaboradorAtual');
+  window.excluirColaborador      = bloqueio('excluirColaborador');
+  window.excluirColaboradorLista = bloqueio('excluirColaboradorLista');
+  window.setStatus               = bloqueio('setStatus');
+  window.toggleNA                = bloqueio('toggleNA');
+  window.removerArquivoRecrutador= bloqueio('removerArquivoRecrutador');
+  window.abrirFluxoPicker        = bloqueio('abrirFluxoPicker');
+  window.salvarFluxoPicker       = bloqueio('salvarFluxoPicker');
+  window.selecionarCorPicker     = bloqueio('selecionarCorPicker');
+  window.uploadDoc               = bloqueio('uploadDoc');
+  window.uploadDocCollab         = bloqueio('uploadDocCollab');
+  window.mudarTab = (t) => {
+    if (t === 'cadastro') { alert('⛔ Acesso negado: conta somente visualização.'); return; }
+    // permite navegar para lista normalmente
+    document.getElementById('tab-content-lista').style.display = '';
+    document.getElementById('tab-content-cadastro').style.display = 'none';
+    document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', i === 0));
+  };
+
+  // ── 2. Esconder botões de edição via CSS (injetado no <head>) ──
+  if (!document.getElementById('readonly-style')) {
+    const style = document.createElement('style');
+    style.id = 'readonly-style';
+    style.textContent = `
+      /* Modo somente visualização — ocultar todos os controles de edição */
+      [onclick="mudarTab('cadastro')"],
+      [onclick="editarColaboradorAtual()"],
+      [onclick="excluirColaborador()"],
+      .tab:nth-child(2),
+      .recruiter-btns,
+      .upload-btn,
+      .approve-btn,
+      .na-btn {
+        display: none !important;
+        pointer-events: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // ── 3. Re-renderizar a lista (botões ✏️/🗑️ são gerados por JS, precisam sumir) ──
+  renderLista();
+
+  // ── 4. Esconder botões que existem como HTML estático no detalhe ──
+  document.querySelectorAll(
+    '[onclick="editarColaboradorAtual()"], [onclick="excluirColaborador()"]'
+  ).forEach(b => b.style.display = 'none');
+
+  // ── 5. Banner de aviso ──
+  const app = document.getElementById('recruiter-app');
+  if (app && !document.getElementById('readonly-banner')) {
+    const banner = document.createElement('div');
+    banner.id = 'readonly-banner';
+    banner.style.cssText = 'background:var(--amber-bg);border-bottom:2px solid #f5cfa0;padding:10px 24px;font-size:13px;color:var(--amber-text);font-weight:600;display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:40;';
+    banner.innerHTML = '👁️ Você está em modo <strong>somente visualização</strong> — edições e cadastros não são permitidos para esta conta.';
+    app.insertBefore(banner, app.firstChild);
+  }
+}
+
+// =============================================
 // GERENCIADOR DE USUÁRIOS
 // =============================================
 function abrirGerenciadorUsuarios() {
@@ -1244,13 +1348,19 @@ async function carregarListaUsuarios() {
   }
   lista.innerHTML = data.map(u => `
     <div style="background:var(--gray-bg);border:1px solid var(--gray-border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px;">
-      <div style="width:34px;height:34px;border-radius:50%;background:var(--green-light);color:var(--green-text);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">${(u.nome||'?')[0].toUpperCase()}</div>
+      <div style="width:34px;height:34px;border-radius:50%;background:${u.somente_visualizacao ? '#faeeda' : 'var(--green-light)'};color:${u.somente_visualizacao ? 'var(--amber-text)' : 'var(--green-text)'};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">${(u.nome||'?')[0].toUpperCase()}</div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:600;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.nome||'—'}</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <span style="font-size:13px;font-weight:600;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.nome||'—'}</span>
+          ${u.somente_visualizacao ? `<span style="background:var(--amber-bg);color:var(--amber-text);border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700;white-space:nowrap;">👁️ Só leitura</span>` : `<span style="background:var(--green-light);color:var(--green-text);border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700;white-space:nowrap;">✏️ Edição</span>`}
+        </div>
         <div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.email}</div>
         ${u.cc ? `<div style="font-size:11px;color:var(--green-text);margin-top:1px;">CC: ${u.cc}</div>` : ''}
       </div>
-      <button onclick="removerPreCadastro('${u.id}')" style="background:var(--red-bg);border:none;color:var(--red-text);border-radius:6px;width:26px;height:26px;cursor:pointer;font-size:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;" title="Remover">×</button>
+      <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+        <button onclick="alternarReadonly('${u.id}', ${!!u.somente_visualizacao})" title="${u.somente_visualizacao ? 'Dar acesso de edição' : 'Definir como somente visualização'}" style="background:${u.somente_visualizacao ? 'var(--green-light)' : 'var(--amber-bg)'};border:none;color:${u.somente_visualizacao ? 'var(--green-text)' : 'var(--amber-text)'};border-radius:6px;width:26px;height:26px;cursor:pointer;font-size:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center;" title="${u.somente_visualizacao ? 'Dar acesso completo' : 'Tornar somente leitura'}">${u.somente_visualizacao ? '✏️' : '👁️'}</button>
+        <button onclick="removerPreCadastro('${u.id}')" style="background:var(--red-bg);border:none;color:var(--red-text);border-radius:6px;width:26px;height:26px;cursor:pointer;font-size:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;" title="Remover">×</button>
+      </div>
     </div>
   `).join('');
 }
@@ -1259,10 +1369,11 @@ async function adicionarPreCadastro() {
   const email = document.getElementById('ger-novo-email').value.trim().toLowerCase();
   const nome = document.getElementById('ger-novo-nome').value.trim();
   const cc = document.getElementById('ger-novo-cc').value.trim();
+  const somenteVisualizacao = document.getElementById('ger-novo-readonly').value === 'true';
   const msg = document.getElementById('ger-form-msg');
   if (!email || !nome) { msg.innerHTML='<div class="alert alert-error">E-mail e nome são obrigatórios.</div>'; return; }
   msg.innerHTML = '';
-  const { error } = await sb.from('usuarios_pre_cadastro').insert([{ email, nome, cc: cc||null, ativo: true }]);
+  const { error } = await sb.from('usuarios_pre_cadastro').insert([{ email, nome, cc: cc||null, ativo: true, somente_visualizacao: somenteVisualizacao }]);
   if (error) {
     if (error.code === '42P01') {
       // Tabela não existe, cria via RPC ou exibe instrução
@@ -1275,6 +1386,12 @@ async function adicionarPreCadastro() {
   document.getElementById('ger-novo-email').value = '';
   document.getElementById('ger-novo-nome').value = '';
   document.getElementById('ger-novo-cc').value = '';
+  // Reset toggle somente visualização
+  document.getElementById('ger-novo-readonly').value = 'false';
+  document.getElementById('ger-flag-readonly-btn').style.background = '#ccc';
+  document.getElementById('ger-flag-readonly-thumb').style.left = '3px';
+  document.getElementById('ger-flag-readonly-wrap').style.background = '#f0f7f4';
+  document.getElementById('ger-flag-readonly-wrap').style.borderColor = '#c5ddd6';
   msg.innerHTML='<div class="alert alert-success">Usuário adicionado com sucesso!</div>';
   setTimeout(() => { msg.innerHTML=''; }, 3000);
   carregarListaUsuarios();
@@ -1284,6 +1401,35 @@ async function removerPreCadastro(id) {
   if (!confirm('Remover este usuário da lista de pré-cadastro?')) return;
   const { error } = await sb.from('usuarios_pre_cadastro').delete().eq('id', id);
   if (error) { alert('Erro ao remover: ' + error.message); return; }
+  carregarListaUsuarios();
+}
+
+function toggleSomenteVisualizacao() {
+  const atual = document.getElementById('ger-novo-readonly').value === 'true';
+  const novo = !atual;
+  document.getElementById('ger-novo-readonly').value = String(novo);
+  const btn = document.getElementById('ger-flag-readonly-btn');
+  const thumb = document.getElementById('ger-flag-readonly-thumb');
+  const wrap = document.getElementById('ger-flag-readonly-wrap');
+  if (novo) {
+    btn.style.background = 'var(--amber)';
+    thumb.style.left = '19px';
+    wrap.style.background = 'var(--amber-bg)';
+    wrap.style.borderColor = '#f5cfa0';
+  } else {
+    btn.style.background = '#ccc';
+    thumb.style.left = '3px';
+    wrap.style.background = '#f0f7f4';
+    wrap.style.borderColor = '#c5ddd6';
+  }
+}
+
+async function alternarReadonly(id, atualValor) {
+  const novoValor = !atualValor;
+  const label = novoValor ? 'somente visualização' : 'acesso completo';
+  if (!confirm(`Alterar usuário para ${label}?`)) return;
+  const { error } = await sb.from('usuarios_pre_cadastro').update({ somente_visualizacao: novoValor }).eq('id', id);
+  if (error) { alert('Erro ao atualizar: ' + error.message); return; }
   carregarListaUsuarios();
 }
 
@@ -1368,7 +1514,19 @@ function voltarLogin() {
 async function carregarApp() {
   document.getElementById('recruiter-app').style.display = 'flex';
   atualizarBotaoRelatorio();
+  // Garantir que o flag readonly está definido antes de renderizar a lista
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    const { data: upc } = await sb
+      .from('usuarios_pre_cadastro')
+      .select('somente_visualizacao')
+      .eq('email', session.user.email.toLowerCase())
+      .eq('ativo', true)
+      .maybeSingle();
+    usuarioSomenteVisualizacao = !!(upc && upc.somente_visualizacao);
+  }
   await carregarColaboradores();
+  aplicarModoVisualizacao();
 }
 async function carregarColaboradores() {
   showLoading('Carregando colaboradores...');
@@ -1460,8 +1618,8 @@ function renderColabItem(c) {
           </div>
         </div>
         <div class="colab-actions">
-          <button class="btn btn-icon btn-outline" title="Editar pasta" onclick="editarColab('${c.id}')">✏️</button>
-          <button class="btn btn-icon btn-outline" title="Excluir pasta" onclick="excluirColaboradorLista('${c.id}','${c.tipo_doc || 'RP'} ${c.numero_rpmqp}')" style="color:#e24b4a;border-color:#f7c1c1;">🗑️</button>
+          ${usuarioSomenteVisualizacao ? '' : `<button class="btn btn-icon btn-outline" title="Editar pasta" onclick="editarColab('${c.id}')">✏️</button>
+          <button class="btn btn-icon btn-outline" title="Excluir pasta" onclick="excluirColaboradorLista('${c.id}','${c.tipo_doc || 'RP'} ${c.numero_rpmqp}')" style="color:#e24b4a;border-color:#f7c1c1;">🗑️</button>`}
         </div>
       </div>
     </div>`;
@@ -1510,9 +1668,9 @@ function renderColabItem(c) {
       <div class="colab-actions">
         ${progressHtml}
         <button class="btn btn-icon btn-outline" title="Ver documentos" onclick="abrirDetalheComSenha('${c.id}')">📋</button>
-        <button class="btn btn-icon btn-outline" title="Editar" onclick="editarColab('${c.id}')">✏️</button>
+        ${usuarioSomenteVisualizacao ? '' : `<button class="btn btn-icon btn-outline" title="Editar" onclick="editarColab('${c.id}')">✏️</button>`}
         ${linkBtnHtml}
-        <button class="btn btn-icon btn-outline" title="Excluir colaborador" onclick="excluirColaboradorLista('${c.id}','${c.nome}')" style="color:#e24b4a;border-color:#f7c1c1;">🗑️</button>
+        ${usuarioSomenteVisualizacao ? '' : `<button class="btn btn-icon btn-outline" title="Excluir colaborador" onclick="excluirColaboradorLista('${c.id}','${c.nome}')" style="color:#e24b4a;border-color:#f7c1c1;">🗑️</button>`}
       </div>
     </div>
     ${fluxoHtml}
@@ -1582,10 +1740,13 @@ function renderFluxoInline(c) {
     const obs = getFluxoObs(c.id, e.id);
     const obsHtml = obs ? `<div class="fluxo-tooltip-obs">💬 ${obs.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : '';
     const obsIconHtml = obs ? `<div class="fluxo-obs-icon">💬</div>` : '';
+    const declinedIconHtml = st === 'declined' ? `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:white;font-size:13px;font-weight:900;line-height:1;pointer-events:none;">✕</div>` : '';
+    const labelExtra = st === 'declined' ? `<div style="font-size:8px;font-weight:800;color:var(--red);text-transform:uppercase;letter-spacing:0.3px;margin-top:1px;text-align:center;">DECLINOU</div>` : '';
     return `<div class="fluxo-step" id="fstep-${c.id}-${e.id}">
       <div class="fluxo-tooltip">${e.desc}${obsHtml}</div>
-      <div class="fluxo-node status-${st}" onclick="abrirFluxoPicker('${c.id}','${e.id}',this)" style="position:relative;">${obsIconHtml}</div>
+      <div class="fluxo-node status-${st}" onclick="abrirFluxoPicker('${c.id}','${e.id}',this)" style="position:relative;">${obsIconHtml}${declinedIconHtml}</div>
       <div class="fluxo-label">${e.label}</div>
+      ${labelExtra}
     </div>`;
   }).join('');
   return `<div class="fluxo-wrap"><div class="fluxo-pipeline">${steps}</div></div>`;
@@ -1597,6 +1758,7 @@ function fecharPickerAberto() {
 }
 
 function abrirFluxoPicker(colabId, etapaId, nodeEl) {
+  if (bloquearSeVisualizacao('alterar o fluxo de etapas')) return;
   // Fechar qualquer picker aberto
   if (pickerAberto) {
     fecharPickerAberto();
@@ -1607,9 +1769,10 @@ function abrirFluxoPicker(colabId, etapaId, nodeEl) {
   picker.className = 'fluxo-picker';
   picker.innerHTML = `
     <div class="fluxo-picker-colors">
-      <div class="fluxo-picker-opt fpo-none" title="Não iniciado" onclick="selecionarCorPicker('${colabId}','${etapaId}','none',this)"></div>
-      <div class="fluxo-picker-opt fpo-wip"  title="Em andamento" onclick="selecionarCorPicker('${colabId}','${etapaId}','wip',this)"></div>
-      <div class="fluxo-picker-opt fpo-done" title="Concluído"    onclick="selecionarCorPicker('${colabId}','${etapaId}','done',this)"></div>
+      <div class="fluxo-picker-opt fpo-none"     title="Não iniciado"         onclick="selecionarCorPicker('${colabId}','${etapaId}','none',this)"></div>
+      <div class="fluxo-picker-opt fpo-wip"      title="Em andamento"         onclick="selecionarCorPicker('${colabId}','${etapaId}','wip',this)"></div>
+      <div class="fluxo-picker-opt fpo-done"     title="Concluído"            onclick="selecionarCorPicker('${colabId}','${etapaId}','done',this)"></div>
+      <div class="fluxo-picker-opt fpo-declined" title="Candidato declinou"   onclick="selecionarCorPicker('${colabId}','${etapaId}','declined',this)"></div>
     </div>
     <div>
       <span class="fluxo-picker-obs-label">📝 Observação</span>
@@ -1621,7 +1784,7 @@ function abrirFluxoPicker(colabId, etapaId, nodeEl) {
   // Marcar a cor atual com anel de seleção
   const statusAtual = getFluxoStatus(colabId, etapaId);
   const opts = picker.querySelectorAll('.fluxo-picker-opt');
-  const mapaIdx = { none: 0, wip: 1, done: 2 };
+  const mapaIdx = { none: 0, wip: 1, done: 2, declined: 3 };
   if (mapaIdx[statusAtual] !== undefined) {
     opts[mapaIdx[statusAtual]].style.boxShadow = '0 0 0 3px #1a3a2a, 0 0 0 5px rgba(29,158,117,0.4)';
   }
@@ -1690,6 +1853,35 @@ async function setFluxoStatus(colabId, etapaId, status, obs) {
       }
     } else {
       if (existingIcon) existingIcon.remove();
+    }
+    // Ícone ✕ para declined
+    const existingX = nodeEl.querySelector('.fluxo-declined-icon');
+    if (status === 'declined') {
+      if (!existingX) {
+        const xIcon = document.createElement('div');
+        xIcon.className = 'fluxo-declined-icon';
+        xIcon.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:white;font-size:13px;font-weight:900;line-height:1;pointer-events:none;';
+        xIcon.textContent = '✕';
+        nodeEl.appendChild(xIcon);
+      }
+    } else {
+      if (existingX) existingX.remove();
+    }
+  }
+  // Atualizar label DECLINOU abaixo do nó
+  const stepEl2 = document.querySelector(`#fstep-${colabId}-${etapaId}`);
+  if (stepEl2) {
+    const existingDeclinedLabel = stepEl2.querySelector('.fluxo-declined-label');
+    if (status === 'declined') {
+      if (!existingDeclinedLabel) {
+        const lbl = document.createElement('div');
+        lbl.className = 'fluxo-declined-label';
+        lbl.style.cssText = 'font-size:8px;font-weight:800;color:var(--red);text-transform:uppercase;letter-spacing:0.3px;margin-top:1px;text-align:center;';
+        lbl.textContent = 'DECLINOU';
+        stepEl2.appendChild(lbl);
+      }
+    } else {
+      if (existingDeclinedLabel) existingDeclinedLabel.remove();
     }
   }
 
@@ -1902,8 +2094,8 @@ function renderLista(filtro='', filtroCC='', filtroFuncao='', filtroNumero='') {
         pastaInfoHtml = `<span style="font-size:11px;opacity:0.8;">${pastaRp.vagas || '—'} vaga${(pastaRp.vagas||0)>1?'s':''} · Criada em ${dataFmt}</span>${diasHtml}${previsaoHtml}`;
         pastaAcoesHtml = `<button class="btn btn-icon btn-outline" title="Compartilhar link de acompanhamento" onclick="event.stopPropagation();compartilharRP('${pastaRp.id}','${rpKey}')" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:white;font-size:13px;">🔗</button>
           <button class="btn btn-icon btn-outline" title="Gerar resumo da RP" onclick="event.stopPropagation();gerarResumoPasta('${rpKey}', '${pastaRp.id}')" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:white;font-size:13px;">📊</button>
-          <button class="btn btn-icon btn-outline" title="Editar pasta" onclick="event.stopPropagation();editarColab('${pastaRp.id}')" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:white;font-size:13px;">✏️</button>
-          <button class="btn btn-icon btn-outline" title="Excluir pasta" onclick="event.stopPropagation();excluirColaboradorLista('${pastaRp.id}','${rpKey}')" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.25);color:#ffc5c5;font-size:13px;">🗑️</button>`;
+          ${usuarioSomenteVisualizacao ? '' : `<button class="btn btn-icon btn-outline" title="Editar pasta" onclick="event.stopPropagation();editarColab('${pastaRp.id}')" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:white;font-size:13px;">✏️</button>
+          <button class="btn btn-icon btn-outline" title="Excluir pasta" onclick="event.stopPropagation();excluirColaboradorLista('${pastaRp.id}','${rpKey}')" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.25);color:#ffc5c5;font-size:13px;">🗑️</button>`}`;
       }
 
       // Verificar se vagas estão preenchidas (pasta fica verde)
@@ -1965,6 +2157,7 @@ function renderLista(filtro='', filtroCC='', filtroFuncao='', filtroNumero='') {
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:13px;height:13px;border-radius:50%;background:#d0d8d3;border:2px solid #1a3a2a;display:inline-block;flex-shrink:0;"></span>Não iniciado</span>
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:13px;height:13px;border-radius:50%;background:#f5d000;border:2px solid #1a3a2a;display:inline-block;flex-shrink:0;animation:pulse-wip 1.1s ease-in-out infinite;"></span>Em andamento</span>
           <span style="display:flex;align-items:center;gap:5px;"><span style="width:13px;height:13px;border-radius:50%;background:#1d9e75;border:2px solid #1a3a2a;display:inline-block;flex-shrink:0;"></span>Concluído</span>
+          <span style="display:flex;align-items:center;gap:5px;"><span style="width:13px;height:13px;border-radius:50%;background:#e24b4a;border:2px solid #1a3a2a;display:inline-block;flex-shrink:0;animation:pulse-declined 1.1s ease-in-out infinite;"></span>Candidato declinou</span>
           <span style="color:#7a9a8a;font-style:italic;">Clique na bolinha para alterar o status</span>
         </div>` : ''}
         ${subPastasHtml}
@@ -1972,6 +2165,12 @@ function renderLista(filtro='', filtroCC='', filtroFuncao='', filtroNumero='') {
       </div>
     </div>`;
   }).join('');
+  // Após qualquer renderização, garantir que botões de edição não apareçam em modo leitura
+  if (usuarioSomenteVisualizacao) {
+    document.querySelectorAll(
+      '[onclick="editarColaboradorAtual()"], [onclick="excluirColaborador()"]'
+    ).forEach(b => b.style.display = 'none');
+  }
 }
 
 function calcPct(colabId) {
@@ -2115,6 +2314,7 @@ function limparForm() {
 function cancelarForm() { limparForm(); mudarTab('lista'); }
 
 function editarColab(id) {
+  if (bloquearSeVisualizacao('editar colaboradores')) return;
   const c = colaboradores.find(x=>x.id===id);
   if(!c) return;
   editingId = id;
@@ -2163,6 +2363,7 @@ function mascaraCPF(v) {
 document.addEventListener('input', e => { if(e.target.id==='f-cpf') e.target.value = mascaraCPF(e.target.value); });
 
 async function salvarColaborador() {
+  if (bloquearSeVisualizacao('cadastrar ou editar colaboradores')) return;
   const msg = document.getElementById('form-msg');
 
   if (modopastaRP) {
@@ -2251,6 +2452,7 @@ async function salvarColaborador() {
 }
 
 async function excluirColaboradorLista(id, nome) {
+  if (bloquearSeVisualizacao('excluir colaboradores')) return;
   if(!confirm(`Excluir ${nome}? Todos os documentos também serão removidos.`)) return;
   showLoading('Excluindo...');
   const { error } = await sb.from('colaboradores').delete().eq('id', id);
@@ -2260,6 +2462,7 @@ async function excluirColaboradorLista(id, nome) {
 }
 
 async function excluirColaborador() {
+  if (bloquearSeVisualizacao('excluir colaboradores')) return;
   if(!currentColab) return;
   if(!confirm(`Excluir ${currentColab.nome}? Todos os documentos também serão removidos.`)) return;
   showLoading('Excluindo...');
@@ -2391,6 +2594,13 @@ function renderDetalhe() {
   if (docsSection) docsSection.style.display = isMQP ? 'none' : '';
   if (depsSection) depsSection.style.display = isMQP ? 'none' : '';
 
+  // Em modo somente visualização, esconder botões de edição do detalhe
+  if (usuarioSomenteVisualizacao) {
+    document.querySelectorAll(
+      '[onclick="editarColaboradorAtual()"], [onclick="excluirColaborador()"]'
+    ).forEach(b => b.style.display = 'none');
+  }
+
   if (!isMQP) {
     document.getElementById('dv-link').textContent = getLinkColab(c.id);
     renderDocRows('dv-docs', DOCS.filter(d=>!d.dep), docs, true);
@@ -2480,6 +2690,7 @@ function renderDocRows(containerId, docList, docs, isRecruiter) {
 }
 
 async function setStatus(docId, status) {
+  if (bloquearSeVisualizacao('alterar status de documentos')) return;
   if(!currentColab) return;
   const docs = docsMap[currentColab.id] || [];
   const existing = docs.find(x=>x.doc_id===docId);
@@ -2495,6 +2706,7 @@ async function setStatus(docId, status) {
 }
 
 async function toggleNA(docId) {
+  if (bloquearSeVisualizacao('alterar documentos')) return;
   if(!currentColab) return;
   const docs = docsMap[currentColab.id] || [];
   const existing = docs.find(x=>x.doc_id===docId);
@@ -2511,6 +2723,7 @@ async function toggleNA(docId) {
 }
 
 async function removerArquivoRecrutador(docRowId, docId, idx) {
+  if (bloquearSeVisualizacao('remover arquivos')) return;
   if(!currentColab) return;
   if(!confirm('Remover este arquivo?')) return;
   const colabId = currentColab.id;
@@ -3284,6 +3497,9 @@ async function gerarResumoPasta(rpKey, pastaRpId) {
             } else if (st === 'wip') {
               pdf.setFillColor(245, 208, 0);      // amarelo
               pdf.setDrawColor(180, 150, 0);
+            } else if (st === 'declined') {
+              pdf.setFillColor(226, 75, 74);      // vermelho
+              pdf.setDrawColor(160, 40, 40);
             } else {
               pdf.setFillColor(208, 216, 211);    // cinza
               pdf.setDrawColor(160, 175, 168);
@@ -3291,7 +3507,7 @@ async function gerarResumoPasta(rpKey, pastaRpId) {
             pdf.setLineWidth(0.5);
             pdf.circle(cx2, nodeCY, nodeR, 'FD');
 
-            // Ícone dentro do nó (✓ se done, · se wip)
+            // Ícone dentro do nó (✓ se done, · se wip, ✕ se declined)
             if (st === 'done') {
               pdf.setTextColor(255, 255, 255);
               pdf.setFontSize(5.5); pdf.setFont('helvetica', 'bold');
@@ -3300,6 +3516,10 @@ async function gerarResumoPasta(rpKey, pastaRpId) {
               pdf.setTextColor(100, 80, 0);
               pdf.setFontSize(6); pdf.setFont('helvetica', 'bold');
               pdf.text('…', cx2, nodeCY + 1.8, { align: 'center' });
+            } else if (st === 'declined') {
+              pdf.setTextColor(255, 255, 255);
+              pdf.setFontSize(5.5); pdf.setFont('helvetica', 'bold');
+              pdf.text('X', cx2, nodeCY + 1.8, { align: 'center' });
             }
 
             // Label abaixo do nó
@@ -3326,6 +3546,7 @@ async function gerarResumoPasta(rpKey, pastaRpId) {
         { cor: [29, 158, 117],  borda: [20, 110, 80],  txt: 'Concluído' },
         { cor: [245, 208, 0],   borda: [180, 150, 0],  txt: 'Em andamento' },
         { cor: [208, 216, 211], borda: [160, 175, 168],txt: 'Não iniciado' },
+        { cor: [226, 75, 74],   borda: [160, 40, 40],  txt: 'Candidato declinou' },
       ];
       let lx = M;
       legendItems.forEach(it => {
