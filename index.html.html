@@ -1383,16 +1383,10 @@ function fecharGerenciador() {
   document.getElementById('modal-gerenciador').style.display = 'none';
 }
 
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-
-async function verificarSenhaGer() {
+function verificarSenhaGer() {
   const senha = document.getElementById('ger-senha-input').value;
   const msg = document.getElementById('ger-senha-msg');
-  const hash = await sha256(senha);
-  if (hash !== '19f8bdaa82ba9dff87d79bb02bf8e5c164d8dcaacc9942cd7a4929e213302902') {
+  if (senha !== 'PPO') {
     msg.innerHTML = '<div class="alert alert-error">Senha incorreta.</div>';
     document.getElementById('ger-senha-input').value = '';
     document.getElementById('ger-senha-input').focus();
@@ -2601,12 +2595,11 @@ function abrirDetalheComSenha(id) {
   setTimeout(() => { const el = document.getElementById('senha-checklist'); if(el) el.focus(); }, 100);
 }
 
-async function confirmarSenhaChecklist(id) {
+function confirmarSenhaChecklist(id) {
   const input = document.getElementById('senha-checklist');
   const msg = document.getElementById('senha-checklist-msg');
   if (!input) return;
-  const hash = await sha256(input.value);
-  if (hash === '204164d223b35aabb54ea32b1d14d8bb5a8df56f7c81f3304987fa4193426729') {
+  if (input.value === 'PPP') {
     fecharModal();
     abrirDetalhe(id);
   } else {
