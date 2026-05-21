@@ -562,10 +562,10 @@ create policy if not exists "allow_all_fluxo" on fluxo_pipeline for all using (t
           <div class="ambiente-opt-name">MQP</div>
           <div class="ambiente-opt-desc">Movimentação de Quadro de Pessoal</div>
         </button>
-        <button class="ambiente-opt" id="amb-opt-3" onclick="selecionarAmbiente(3)">
-          <div class="ambiente-opt-num">3</div>
-          <div class="ambiente-opt-name">Solicitações</div>
-          <div class="ambiente-opt-desc">Gestão de Solicitações</div>
+        <button class="ambiente-opt" id="amb-opt-3" style="opacity:0.55;cursor:not-allowed;" disabled>
+          <div class="ambiente-opt-num" style="color:var(--text-muted);">3</div>
+          <div class="ambiente-opt-name" style="color:var(--text-muted);">Solicitações</div>
+          <div class="ambiente-opt-desc">(Em breve)</div>
         </button>
       </div>
     </div>
@@ -686,76 +686,6 @@ create policy if not exists "allow_all_fluxo" on fluxo_pipeline for all using (t
     <div style="margin-top:14px;font-size:11px;color:var(--text-muted);">
       <a class="help-link" href="#" onclick="resetarConfig()">⚙ Reconfigurar conexão</a>
     </div>
-  </div>
-</div>
-
-<!-- ===== SOLICITAÇÕES VIEW (Ambiente 3) ===== -->
-<div id="view-solicitacoes" style="display:none;" class="page">
-  <div style="max-width:960px;margin:0 auto;">
-
-    <!-- Tabs do Ambiente 3 -->
-    <div class="tabs">
-      <button class="tab active" id="sol-tab-criar" onclick="solMudarTab('criar')">➕ Criar Solicitação</button>
-      <button class="tab" id="sol-tab-acompanhar" onclick="solMudarTab('acompanhar')">📊 Acompanhar MQPs</button>
-    </div>
-
-    <!-- TAB: CRIAR SOLICITAÇÃO -->
-    <div id="sol-content-criar">
-      <div style="text-align:center;margin-bottom:28px;">
-        <div style="font-size:18px;font-weight:700;color:var(--text-main);">Nova Solicitação</div>
-        <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">Selecione o tipo de requisição que deseja abrir</div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:600px;margin:0 auto;">
-        <button onclick="abrirFormJotform('rp')" style="background:white;border:2px solid var(--gray-border);border-radius:14px;padding:32px 20px;cursor:pointer;transition:all 0.2s;text-align:center;font-family:inherit;" onmouseover="this.style.borderColor='var(--green-mid)';this.style.boxShadow='0 4px 16px rgba(29,158,117,0.15)'" onmouseout="this.style.borderColor='var(--gray-border)';this.style.boxShadow='none'">
-          <div style="font-size:36px;margin-bottom:12px;">📋</div>
-          <div style="font-size:15px;font-weight:700;color:var(--green-dark);margin-bottom:6px;">Requisição de Pessoas</div>
-          <div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Solicitação de contratação de novo colaborador (RP)</div>
-          <div style="margin-top:14px;display:inline-block;background:var(--green-dark);color:white;font-size:12px;font-weight:600;padding:6px 16px;border-radius:6px;">Abrir Formulário ↗</div>
-        </button>
-        <button onclick="abrirFormJotform('mqp')" style="background:white;border:2px solid var(--gray-border);border-radius:14px;padding:32px 20px;cursor:pointer;transition:all 0.2s;text-align:center;font-family:inherit;" onmouseover="this.style.borderColor='var(--green-mid)';this.style.boxShadow='0 4px 16px rgba(29,158,117,0.15)'" onmouseout="this.style.borderColor='var(--gray-border)';this.style.boxShadow='none'">
-          <div style="font-size:36px;margin-bottom:12px;">🔄</div>
-          <div style="font-size:15px;font-weight:700;color:var(--green-dark);margin-bottom:6px;">Movimentação de Quadro</div>
-          <div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Solicitação de movimentação de pessoal (MQP)</div>
-          <div style="margin-top:14px;display:inline-block;background:var(--green-dark);color:white;font-size:12px;font-weight:600;padding:6px 16px;border-radius:6px;">Abrir Formulário ↗</div>
-        </button>
-      </div>
-    </div>
-
-    <!-- TAB: ACOMPANHAR MQPs -->
-    <div id="sol-content-acompanhar" style="display:none;">
-
-      <!-- Filtros -->
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
-        <input type="text" id="sol-search" placeholder="🔍 Buscar por nome, matrícula ou nº..." style="flex:1;min-width:200px;" oninput="solFiltrarMQPs()">
-        <select id="sol-filtro-tipo" style="width:180px;" onchange="solFiltrarMQPs()">
-          <option value="">Todos os tipos</option>
-          <option value="Alteração Funcional">Alteração Funcional</option>
-          <option value="Transferência">Transferência</option>
-          <option value="Demissão">Demissão</option>
-          <option value="Contrato de Trabalho">Contrato de Trabalho</option>
-        </select>
-        <button class="btn btn-outline btn-sm" onclick="solCarregarMQPs()">🔄 Atualizar</button>
-      </div>
-
-      <!-- Estatísticas rápidas -->
-      <div id="sol-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;"></div>
-
-      <!-- Contador + última atualização -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:4px;">
-        <div id="sol-mqp-count" style="font-size:12px;color:var(--text-muted);"></div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div id="sol-last-update" style="font-size:11px;color:var(--text-muted);"></div>
-          <div style="font-size:11px;color:var(--green-mid);font-weight:600;" id="sol-next-update"></div>
-        </div>
-      </div>
-
-      <!-- Lista -->
-      <div id="sol-mqp-lista">
-        <div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">Carregando submissões...</div>
-      </div>
-
-    </div>
-
   </div>
 </div>
 
@@ -1612,7 +1542,6 @@ function selecionarAmbiente(n) {
   ambienteSelecionado = n;
   document.getElementById('amb-opt-1').classList.toggle('selected', n===1);
   document.getElementById('amb-opt-2').classList.toggle('selected', n===2);
-  document.getElementById('amb-opt-3').classList.toggle('selected', n===3);
   document.getElementById('amb-msg').innerHTML = '';
 }
 
@@ -1626,15 +1555,8 @@ async function confirmarAmbiente() {
   // Atualizar labels no header
   const labelEl = document.getElementById('amb-label');
   const subEl   = document.getElementById('header-amb-sub');
-  let tipoNome, tipoLabel;
-  if (ambienteSelecionado === 1) {
-    tipoNome = 'RP — Requisição de Pessoas'; tipoLabel = 'RP';
-  } else if (ambienteSelecionado === 2) {
-    tipoNome = 'MQP — Movimentação de Quadro de Pessoal'; tipoLabel = 'MQP';
-  } else {
-    tipoNome = 'Solicitações'; tipoLabel = 'Solicitações';
-  }
-  if (labelEl) labelEl.textContent = `Ambiente ${ambienteSelecionado} — ${tipoLabel}`;
+  const tipoNome = ambienteSelecionado === 1 ? 'RP — Requisição de Pessoas' : 'MQP — Movimentação de Quadro de Pessoal';
+  if (labelEl) labelEl.textContent = `Ambiente ${ambienteSelecionado} — ${ambienteSelecionado === 1 ? 'RP' : 'MQP'}`;
   if (subEl)   subEl.textContent   = tipoNome;
 
   // Atualizar textos do toggle de pasta conforme ambiente
@@ -1644,19 +1566,7 @@ async function confirmarAmbiente() {
   if (pastaLabel) pastaLabel.textContent = `📁 Criar apenas pasta de ${tipo}`;
   if (pastaSublabel) pastaSublabel.textContent = `Marque se este cadastro é somente a abertura de uma ${tipo}, sem colaborador vinculado ainda.`;
 
-  if (ambienteSelecionado === 3) {
-    document.getElementById('recruiter-app').style.display = 'flex';
-    document.getElementById('view-lista').style.display = 'none';
-    document.getElementById('view-detail').style.display = 'none';
-    document.getElementById('view-solicitacoes').style.display = '';
-    // Resetar para tab Criar
-    document.getElementById('sol-content-criar').style.display = '';
-    document.getElementById('sol-content-acompanhar').style.display = 'none';
-    document.getElementById('sol-tab-criar').classList.add('active');
-    document.getElementById('sol-tab-acompanhar').classList.remove('active');
-  } else {
-    await carregarApp();
-  }
+  await carregarApp();
 }
 
 function trocarAmbiente() {
@@ -1664,12 +1574,8 @@ function trocarAmbiente() {
   // Voltar para lista ao trocar
   const vLista = document.getElementById('view-lista');
   const vDetail = document.getElementById('view-detail');
-  const vSol = document.getElementById('view-solicitacoes');
   if (vLista)  vLista.style.display  = '';
   if (vDetail) vDetail.style.display = 'none';
-  if (vSol)    vSol.style.display    = 'none';
-  solPararAutoRefresh();
-  if (window._solCountdown) clearInterval(window._solCountdown);
   mudarTab('lista');
   showAmbiente();
 }
@@ -4518,265 +4424,6 @@ function gerarPDFRelatorio(linhas) {
   doc.text(`Sistema de Controle de Documentação — ${hoje}`, PW/2, PH-4, { align:'center' });
 
   doc.save(`Relatorio_${tipoFiltro}_${new Date().toISOString().slice(0,10)}.pdf`);
-}
-
-// =============================================
-// AMBIENTE 3 — SOLICITAÇÕES JOTFORM
-// =============================================
-const JOTFORM_URLS = {
-  rp:  'https://www.jotform.com/app/250893968798687',
-  mqp: 'https://www.jotform.com/app/250866113989671'
-};
-
-function abrirFormJotform(tipo) {
-  window.open(JOTFORM_URLS[tipo], '_blank');
-}
-
-// ---- Tabs do Ambiente 3 ----
-let solAutoRefreshTimer = null;
-
-function solMudarTab(tab) {
-  document.getElementById('sol-content-criar').style.display      = tab === 'criar'       ? '' : 'none';
-  document.getElementById('sol-content-acompanhar').style.display = tab === 'acompanhar'  ? '' : 'none';
-  document.getElementById('sol-tab-criar').classList.toggle('active',      tab === 'criar');
-  document.getElementById('sol-tab-acompanhar').classList.toggle('active', tab === 'acompanhar');
-  if (tab === 'acompanhar') {
-    solCarregarMQPs();
-    solIniciarAutoRefresh();
-  } else {
-    solPararAutoRefresh();
-  }
-}
-
-function solIniciarAutoRefresh() {
-  solPararAutoRefresh();
-  solAutoRefreshTimer = setInterval(() => {
-    solCarregarMQPs();
-  }, 30000); // 30 segundos
-}
-
-function solPararAutoRefresh() {
-  if (solAutoRefreshTimer) {
-    clearInterval(solAutoRefreshTimer);
-    solAutoRefreshTimer = null;
-  }
-}
-
-// ---- Acompanhamento de MQPs via Jotform (form 243394674687070) ----
-const JOTFORM_MQP_FORM_ID = '243394674687070';
-let solMQPsCache = [];
-
-async function solCarregarMQPs() {
-  const lista = document.getElementById('sol-mqp-lista');
-  const count = document.getElementById('sol-mqp-count');
-  const stats = document.getElementById('sol-stats');
-
-  const apiKey = '5a37e2dbf9fdbc6773fcadce2d10e1fe'; // CONSULTA_MQP — Somente Leitura
-
-  lista.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">⏳ Carregando submissões...</div>';
-  stats.innerHTML = '';
-
-  try {
-    // Buscar todas as páginas (Jotform limita 1000 por request, pagina com offset)
-    let submissions = [];
-    let offset = 0;
-    const pageSize = 1000;
-    while (true) {
-      const url = `https://api.jotform.com/form/${JOTFORM_MQP_FORM_ID}/submissions?limit=${pageSize}&offset=${offset}&orderby=created_at&direction=DESC&workflowStatus=true&apiKey=${apiKey}`;
-      const resp = await fetch(url);
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const json = await resp.json();
-
-      if (json.responseCode === 401 || json.responseCode === 403) {
-        lista.innerHTML = `<div style="text-align:center;padding:24px;color:var(--red);font-size:13px;">❌ API Key inválida ou sem permissão. <button class="btn btn-outline btn-sm" onclick="solCarregarMQPs()">Tentar novamente</button></div>`;
-        return;
-      }
-
-      const page = json.content || [];
-      submissions = submissions.concat(page);
-
-      // Se veio menos que o limite, não há mais páginas
-      if (page.length < pageSize) break;
-      offset += pageSize;
-    }
-
-    // Mapear campos do Jotform para objeto legível
-    // DEBUG: logar estrutura completa
-    if (submissions.length > 0) {
-      const s = submissions[0];
-      console.log('=== KEYS DO OBJETO ===', Object.keys(s));
-      console.log('=== flow_status ===', s.flow_status);
-      console.log('=== status ===', s.status);
-      console.log('=== TODAS AS ANSWERS ===', JSON.stringify(s.answers, null, 2));
-    }
-
-    solMQPsCache = submissions.map(sub => {
-      const a = sub.answers || {};
-      const get = (...keys) => {
-        for (const k of keys) {
-          for (const [, v] of Object.entries(a)) {
-            if ((v.name||'').toLowerCase().includes(k.toLowerCase()) || (v.text||'').toLowerCase().includes(k.toLowerCase())) {
-              return v.prettyFormat || v.answer || '';
-            }
-          }
-        }
-        return '';
-      };
-      // Flow Status — tentar todas as variações possíveis
-      let flowStatus =
-        sub.flow_status ||
-        sub.flowStatus ||
-        sub['Flow Status'] ||
-        sub['flow status'] ||
-        sub.workflow_status ||
-        sub.workflowStatus ||
-        sub.approval_status ||
-        sub.approvalStatus ||
-        '';
-      // Buscar dentro de answers como fallback
-      if (!flowStatus) {
-        for (const [, v] of Object.entries(sub.answers || {})) {
-          const nm = (v.name || v.text || '').toLowerCase();
-          if (nm.includes('flow') || nm.includes('workflow') || nm.includes('approval')) {
-            flowStatus = v.prettyFormat || v.answer || '';
-            if (flowStatus) break;
-          }
-        }
-      }
-
-      return {
-        id: sub.id,
-        nome: get('nome completo', 'nome'),
-        matricula: get('matricula', 'matrícula'),
-        cargo: get('cargo'),
-        cc: get('centro de custo', 'cc'),
-        tipo: get('tipo de movimentação', 'tipo de moviment'),
-        data: sub.created_at || '',
-        status: flowStatus,
-        gestor: get('e-mail gestor', 'email gestor', 'gestor solicitante'),
-        justificativa: get('justificativa da demissão', 'justificativa da alteração', 'justificativa')
-      };
-    });
-
-    // Stats
-    const total = solMQPsCache.length;
-    const tipos = {};
-    const statuses = { aprovado: 0, andamento: 0, recusado: 0, enviado: 0 };
-    solMQPsCache.forEach(s => {
-      tipos[s.tipo || 'Outros'] = (tipos[s.tipo || 'Outros'] || 0) + 1;
-      const si = solGetStatusInfo(s.status);
-      if (si.label === 'APROVADO') statuses.aprovado++;
-      else if (si.label === 'EM ANDAMENTO') statuses.andamento++;
-      else if (si.label === 'RECUSADO') statuses.recusado++;
-      else statuses.enviado++;
-    });
-
-    stats.innerHTML = `
-      <div style="background:white;border:1px solid var(--gray-border);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:22px;font-weight:800;color:var(--green-dark);">${total}</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Total</div>
-      </div>
-      <div style="background:var(--green-light);border:1px solid #c5ddd6;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:22px;font-weight:800;color:var(--green-text);">${statuses.aprovado}</div>
-        <div style="font-size:11px;color:var(--green-text);margin-top:2px;">Aprovadas</div>
-      </div>
-      <div style="background:var(--amber-bg);border:1px solid #f0d9a8;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:22px;font-weight:800;color:var(--amber-text);">${statuses.andamento}</div>
-        <div style="font-size:11px;color:var(--amber-text);margin-top:2px;">Em Andamento</div>
-      </div>
-      <div style="background:var(--red-bg);border:1px solid #f7c1c1;border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-size:22px;font-weight:800;color:var(--red-text);">${statuses.recusado}</div>
-        <div style="font-size:11px;color:var(--red-text);margin-top:2px;">Recusadas</div>
-      </div>`;
-
-    // Popular filtro de tipos
-    const sel = document.getElementById('sol-filtro-tipo');
-    if (sel) {
-      const tiposUnicos = [...new Set(solMQPsCache.map(s => s.tipo).filter(Boolean))].sort();
-      sel.innerHTML = '<option value="">Todos os tipos</option>' + tiposUnicos.map(t => `<option value="${t}">${t}</option>`).join('');
-    }
-
-    count.textContent = `${total} movimentação(ões)`;
-    // Timestamp da última atualização
-    const agora = new Date().toLocaleTimeString('pt-BR');
-    const elUp = document.getElementById('sol-last-update');
-    if (elUp) elUp.textContent = `🕐 Atualizado às ${agora}`;
-    // Contador regressivo
-    let seg = 30;
-    const elNext = document.getElementById('sol-next-update');
-    if (window._solCountdown) clearInterval(window._solCountdown);
-    window._solCountdown = setInterval(() => {
-      seg--;
-      if (elNext) elNext.textContent = seg > 0 ? `↻ em ${seg}s` : '↻ atualizando...';
-      if (seg <= 0) clearInterval(window._solCountdown);
-    }, 1000);
-    solFiltrarMQPs();
-
-  } catch(err) {
-    lista.innerHTML = `<div style="text-align:center;padding:40px;color:var(--red);font-size:13px;">Erro ao carregar: ${err.message}<br><button class="btn btn-outline btn-sm" style="margin-top:12px;" onclick="solCarregarMQPs()">🔄 Tentar novamente</button></div>`;
-    console.error(err);
-  }
-}
-
-function solFiltrarMQPs() {
-  const q = (document.getElementById('sol-search')?.value || '').toLowerCase();
-  const tipo = (document.getElementById('sol-filtro-tipo')?.value || '');
-  const filtrado = solMQPsCache.filter(s => {
-    const matchQ = !q ||
-      (s.nome || '').toLowerCase().includes(q) ||
-      (s.matricula || '').toLowerCase().includes(q) ||
-      (s.cargo || '').toLowerCase().includes(q) ||
-      (s.cc || '').toLowerCase().includes(q);
-    const matchTipo = !tipo || (s.tipo || '') === tipo;
-    return matchQ && matchTipo;
-  });
-  document.getElementById('sol-mqp-count').textContent = `${filtrado.length} de ${solMQPsCache.length} movimentação(ões)`;
-  solRenderizarMQPs(filtrado);
-}
-
-function solGetStatusInfo(status) {
-  const s = (status || '').toLowerCase().trim();
-  if (!s) return { cor: 'var(--gray-bg)', txt: 'var(--text-muted)', label: 'ENVIADO' };
-  // Português (valores do Jotform Tables)
-  if (s === 'aprovado' || s === 'approved' || s.includes('conclu') || s === 'completed')
-    return { cor: 'var(--green-light)', txt: 'var(--green-text)', label: 'APROVADO' };
-  if (s === 'negado' || s === 'denied' || s === 'rejected' || s.includes('reprovad') || s.includes('recusad'))
-    return { cor: '#fde8e8', txt: '#c0392b', label: 'NEGADO' };
-  if (s === 'em andamento' || s === 'pending' || s === 'waiting' || s.includes('andamento') || s.includes('aguard'))
-    return { cor: 'var(--amber-bg)', txt: 'var(--amber-text)', label: 'EM ANDAMENTO' };
-  // Valor desconhecido — exibir como veio
-  return { cor: '#eef0ff', txt: '#3d52c7', label: status.toUpperCase() };
-}
-
-function solRenderizarMQPs(lista) {
-  const el = document.getElementById('sol-mqp-lista');
-  if (!lista.length) {
-    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px;">Nenhuma movimentação encontrada.</div>';
-    return;
-  }
-  el.innerHTML = lista.map(s => {
-    const initials = (s.nome || '?').split(' ').slice(0,2).map(w => w[0] || '').join('').toUpperCase() || '?';
-    const si = solGetStatusInfo(s.status);
-    const dataFormatada = s.data ? (() => { try { return new Date(s.data).toLocaleDateString('pt-BR'); } catch { return s.data; } })() : '—';
-    return `<div class="colab-item" style="gap:12px;">
-      <div class="avatar">${initials}</div>
-      <div style="flex:1;min-width:0;">
-        <div class="colab-name">${s.nome || '—'}</div>
-        <div class="colab-meta" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:3px;">
-          ${s.matricula ? `<span>🆔 ${s.matricula}</span>` : ''}
-          ${s.cargo     ? `<span>💼 ${s.cargo}</span>` : ''}
-          ${s.cc        ? `<span>🏢 CC ${s.cc}</span>` : ''}
-          <span>📅 ${dataFormatada}</span>
-        </div>
-        ${s.tipo ? `<div style="margin-top:5px;font-size:11px;color:var(--green-text);font-weight:600;">🔄 ${s.tipo}</div>` : ''}
-        ${s.justificativa ? `<div style="margin-top:4px;font-size:11px;color:var(--text-muted);font-style:italic;">"${String(s.justificativa).slice(0,140)}${String(s.justificativa).length>140?'...':''}"</div>` : ''}
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
-        <span style="background:${si.cor};color:${si.txt};font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap;">${si.label}</span>
-        ${s.gestor ? `<div style="font-size:10px;color:var(--text-muted);max-width:150px;text-align:right;overflow:hidden;text-overflow:ellipsis;">👤 ${s.gestor}</div>` : ''}
-      </div>
-    </div>`;
-  }).join('');
 }
 
 // START
