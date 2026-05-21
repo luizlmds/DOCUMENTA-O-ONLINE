@@ -4582,7 +4582,7 @@ async function solCarregarMQPs() {
     let offset = 0;
     const pageSize = 1000;
     while (true) {
-      const url = `https://api.jotform.com/form/${JOTFORM_MQP_FORM_ID}/submissions?limit=${pageSize}&offset=${offset}&orderby=created_at&direction=DESC&apiKey=${apiKey}`;
+      const url = `https://api.jotform.com/form/${JOTFORM_MQP_FORM_ID}/submissions?limit=${pageSize}&offset=${offset}&orderby=created_at&direction=DESC&workflowStatus=true&apiKey=${apiKey}`;
       const resp = await fetch(url);
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const json = await resp.json();
@@ -4601,8 +4601,14 @@ async function solCarregarMQPs() {
     }
 
     // Mapear campos do Jotform para objeto legível
-    // DEBUG: logar primeiro objeto bruto para ver estrutura real
-    if (submissions.length > 0) console.log('JOTFORM SUB RAW:', JSON.stringify(submissions[0], null, 2));
+    // DEBUG: logar estrutura completa
+    if (submissions.length > 0) {
+      const s = submissions[0];
+      console.log('=== KEYS DO OBJETO ===', Object.keys(s));
+      console.log('=== flow_status ===', s.flow_status);
+      console.log('=== status ===', s.status);
+      console.log('=== TODAS AS ANSWERS ===', JSON.stringify(s.answers, null, 2));
+    }
 
     solMQPsCache = submissions.map(sub => {
       const a = sub.answers || {};
@@ -4616,17 +4622,27 @@ async function solCarregarMQPs() {
         }
         return '';
       };
-      // Flow Status vem dentro de answers — buscar por nome exato
-      let flowStatus = '';
-      for (const [, v] of Object.entries(sub.answers || {})) {
-        const nm = (v.name || v.text || '').toLowerCase();
-        if (nm === 'flow_status' || nm === 'flow status' || nm.includes('flow')) {
-          flowStatus = v.prettyFormat || v.answer || '';
-          break;
+      // Flow Status — tentar todas as variações possíveis
+      let flowStatus =
+        sub.flow_status ||
+        sub.flowStatus ||
+        sub['Flow Status'] ||
+        sub['flow status'] ||
+        sub.workflow_status ||
+        sub.workflowStatus ||
+        sub.approval_status ||
+        sub.approvalStatus ||
+        '';
+      // Buscar dentro de answers como fallback
+      if (!flowStatus) {
+        for (const [, v] of Object.entries(sub.answers || {})) {
+          const nm = (v.name || v.text || '').toLowerCase();
+          if (nm.includes('flow') || nm.includes('workflow') || nm.includes('approval')) {
+            flowStatus = v.prettyFormat || v.answer || '';
+            if (flowStatus) break;
+          }
         }
       }
-      // Fallback: vem como propriedade raiz
-      if (!flowStatus) flowStatus = sub.flow_status || sub.flowStatus || sub['Flow Status'] || '';
 
       return {
         id: sub.id,
