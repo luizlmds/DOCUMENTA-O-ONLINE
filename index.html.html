@@ -3377,12 +3377,15 @@ async function carregarVisaoCC(cc) {
             const etapasFl = (c.tipo_doc === 'MQP') ? FLUXO_ETAPAS_MQP : FLUXO_ETAPAS_RP;
             const steps = etapasFl.map(e => {
               const st = (getFluxoState(c.id, e.id) || {}).status || 'none';
-              const cor = st === 'done' ? '#1d9e75' : st === 'wip' ? '#f5d000' : '#d0d8d3';
-              const borda = st === 'done' ? '#1a6b47' : st === 'wip' ? '#b8a000' : '#b0bab5';
-              const icone = st === 'done' ? '✓' : st === 'wip' ? '…' : '';
+              const cor   = st === 'done' ? '#1d9e75' : st === 'wip' ? '#f5d000' : st === 'declined' ? '#e24b4a' : '#d0d8d3';
+              const borda = st === 'done' ? '#1a6b47' : st === 'wip' ? '#b8a000' : st === 'declined' ? '#a32d2d' : '#b0bab5';
+              const icone = st === 'done' ? '✓' : st === 'wip' ? '…' : st === 'declined' ? '✕' : '';
+              const corTexto = st === 'done' ? 'white' : st === 'wip' ? '#7a6000' : st === 'declined' ? 'white' : 'transparent';
+              const declinedLabel = st === 'declined' ? `<div style="font-size:6px;font-weight:800;color:#e24b4a;text-transform:uppercase;letter-spacing:0.3px;margin-top:1px;text-align:center;">DECLINOU</div>` : '';
               return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative;">
-                <div style="width:22px;height:22px;border-radius:50%;background:${cor};border:2px solid ${borda};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:${st==='done'?'white':st==='wip'?'#7a6000':'transparent'};position:relative;z-index:1;">${icone}</div>
+                <div style="width:22px;height:22px;border-radius:50%;background:${cor};border:2px solid ${borda};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:${corTexto};position:relative;z-index:1;">${icone}</div>
                 <div style="font-size:7px;font-weight:600;color:#4a5e55;margin-top:3px;text-align:center;max-width:40px;line-height:1.2;text-transform:uppercase;">${e.label}</div>
+                ${declinedLabel}
               </div>`;
             }).join('');
             fluxoHtmlC = `<div style="margin-top:8px;padding:8px 6px 4px;background:#f9f8f5;border-radius:7px;border:1px solid #e8e5de;">
@@ -3598,12 +3601,15 @@ async function carregarVisaoRP(pastaRpId) {
       const tituloFluxo = (c.tipo_doc === 'MQP') ? 'FLUXO DE MOVIMENTAÇÃO (MQP)' : 'FLUXO DE CONTRATAÇÃO';
       const steps = etapasFl.map(e => {
         const st = (getFluxoState(c.id, e.id) || {}).status || 'none';
-        const cor = st === 'done' ? '#1d9e75' : st === 'wip' ? '#f5d000' : '#d0d8d3';
-        const borda = st === 'done' ? '#1a6b47' : st === 'wip' ? '#b8a000' : '#b0bab5';
-        const icone = st === 'done' ? '✓' : st === 'wip' ? '…' : '';
+        const cor   = st === 'done' ? '#1d9e75' : st === 'wip' ? '#f5d000' : st === 'declined' ? '#e24b4a' : '#d0d8d3';
+        const borda = st === 'done' ? '#1a6b47' : st === 'wip' ? '#b8a000' : st === 'declined' ? '#a32d2d' : '#b0bab5';
+        const icone = st === 'done' ? '✓' : st === 'wip' ? '…' : st === 'declined' ? '✕' : '';
+        const corTexto = st === 'done' ? 'white' : st === 'wip' ? '#7a6000' : st === 'declined' ? 'white' : 'transparent';
+        const declinedLabel = st === 'declined' ? `<div style="font-size:7px;font-weight:800;color:#e24b4a;text-transform:uppercase;letter-spacing:0.3px;margin-top:1px;text-align:center;">DECLINOU</div>` : '';
         return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative;">
-          <div style="width:26px;height:26px;border-radius:50%;background:${cor};border:2px solid ${borda};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:${st==='done'?'white':st==='wip'?'#7a6000':'transparent'};position:relative;z-index:1;">${icone}</div>
+          <div style="width:26px;height:26px;border-radius:50%;background:${cor};border:2px solid ${borda};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:${corTexto};position:relative;z-index:1;">${icone}</div>
           <div style="font-size:8px;font-weight:600;color:#4a5e55;margin-top:4px;text-align:center;max-width:48px;line-height:1.2;text-transform:uppercase;">${e.label}</div>
+          ${declinedLabel}
         </div>`;
       }).join('');
       fluxoHtml = `
